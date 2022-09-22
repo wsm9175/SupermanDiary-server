@@ -4,10 +4,13 @@ import com.lodong.spring.supermandiary.domain.UserConstructor;
 import com.lodong.spring.supermandiary.dto.PhoneNumberDTO;
 import com.lodong.spring.supermandiary.dto.UserConstructorDTO;
 import com.lodong.spring.supermandiary.service.AuthService;
+import com.lodong.spring.supermandiary.service.CertifiedPhoneNumberService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.Random;
 import java.util.UUID;
 
 @Slf4j
@@ -16,13 +19,17 @@ import java.util.UUID;
 public class AuthController {
 
     private final AuthService authService;
+    private final CertifiedPhoneNumberService certifiedPhoneNumberService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, CertifiedPhoneNumberService certifiedPhoneNumberService) {
         this.authService = authService;
+        this.certifiedPhoneNumberService = certifiedPhoneNumberService;
     }
+
     @PostMapping("/registration")
-    public ResponseEntity<?> registration(@RequestBody UserConstructorDTO user){
+    public ResponseEntity<?> registration(@RequestBody UserConstructorDTO user) {
         log.info("user data received");
+        ArrayList<String> arr = new ArrayList<>();
 
         UserConstructor userConstructor = UserConstructor.builder()
                 .id(UUID.randomUUID().toString())
@@ -38,15 +45,28 @@ public class AuthController {
                 .build();
 
         authService.register(userConstructor);
+
         return ResponseEntity.ok(user);
     }
 
     @PostMapping("/duplicate-check")
-    public @ResponseBody boolean duplicateCheck(@RequestBody PhoneNumberDTO phoneNumber){
+    public @ResponseBody boolean duplicateCheck(@RequestBody PhoneNumberDTO phoneNumber) {
         log.info("phone number received");
         return authService.isDuplicated(phoneNumber.getPhoneNumber());
     }
 
+    @GetMapping("/send-sms")
+    public @ResponseBody
+    String sendSMS(String phoneNumber) {
+        Random rand = new Random();
+        String numstr = "";
+        for (int i = 0; i < 6; i++) {
+            String ran = Integer.toString(rand.nextInt(10));
+            numstr += ran;
+        }
+        certifiedPhoneNumberService.certifiedPhoneNumber(phoneNumber, numstr);
+        return numstr;
+    }
 
     @PostMapping("/do")
     public ResponseEntity<?> auth(@RequestBody UserConstructorDTO user) {
