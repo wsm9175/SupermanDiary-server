@@ -13,5 +13,6 @@ public class UserConstructorDTO {
     private boolean active;
     private boolean accept;
     private boolean isCertification;
+    private boolean agreeTerm;
 
 }

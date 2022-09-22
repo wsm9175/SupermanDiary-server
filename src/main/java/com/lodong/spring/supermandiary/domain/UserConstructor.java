@@ -18,9 +18,9 @@ public class UserConstructor {
     private String pw;
     @Column(nullable = false)
     private String name;
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String phoneNumber;
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
     @Column(nullable = false)
     private boolean isCeo;
@@ -30,6 +30,8 @@ public class UserConstructor {
     private boolean accept;
     @Column(nullable = false)
     private boolean isCertification;
+    @Column(nullable = false)
+    private boolean agreeTerm;
 
     @PrePersist
     public void prePersist() {
