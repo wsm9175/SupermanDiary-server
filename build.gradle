@@ -31,7 +31,6 @@ dependencies {
 	// swagger
 	implementation 'io.springfox:springfox-swagger2:2.5.0'
 	implementation 'io.springfox:springfox-swagger-ui:2.5.0'
-	implementation files('libs/javaSDK-2.2.jar')
 	implementation group: 'net.nurigo', name: 'javaSDK', version: '2.2'
 }
 
