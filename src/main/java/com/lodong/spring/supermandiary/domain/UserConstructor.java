@@ -23,6 +23,10 @@ public class UserConstructor {
     @Column(nullable = false, unique = true)
     private String email;
     @Column(nullable = false)
+    private int ageGroup;
+    @Column(nullable = false)
+    private int career;
+    @Column(nullable = false)
     private boolean isCeo;
     @Column(nullable = false)
     private boolean active;
@@ -37,7 +41,7 @@ public class UserConstructor {
     public void prePersist() {
 
     }
-    public UserConstructor(String id, String name, String phoneNumber, String email, boolean isCeo, boolean active, boolean accept) {
+    public UserConstructor(String id, String name, String phoneNumber, String email, boolean isCeo, boolean active, boolean accept, int ageGroup, int career) {
         this.id = id;
         this.name = name;
         this.phoneNumber = phoneNumber;
@@ -45,9 +49,11 @@ public class UserConstructor {
         this.isCeo = isCeo;
         this.active = active;
         this.accept = accept;
+        this.ageGroup = ageGroup;
+        this.career = career;
     }
 
     public static UserConstructor getPublicProfile(UserConstructor userConstructor) {
-        return new UserConstructor(userConstructor.getId(), userConstructor.getName(), userConstructor.getPhoneNumber(),userConstructor.getEmail(), userConstructor.isCeo, userConstructor.isActive(), userConstructor.isAccept());
+        return new UserConstructor(userConstructor.getId(), userConstructor.getName(), userConstructor.getPhoneNumber(),userConstructor.getEmail(), userConstructor.isCeo, userConstructor.isActive(), userConstructor.isAccept(), userConstructor.getAgeGroup(), userConstructor.getCareer());
     }
 }
