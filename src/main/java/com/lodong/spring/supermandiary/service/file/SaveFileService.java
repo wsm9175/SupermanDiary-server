@@ -1,9 +1,9 @@
-package com.lodong.spring.supermandiary.service;
+package com.lodong.spring.supermandiary.service.file;
 
-import com.lodong.spring.supermandiary.domain.BusinessLicense;
-import com.lodong.spring.supermandiary.domain.FileList;
-import com.lodong.spring.supermandiary.repo.BusinessLicenseRepository;
-import com.lodong.spring.supermandiary.repo.FileRepository;
+import com.lodong.spring.supermandiary.domain.file.BusinessLicense;
+import com.lodong.spring.supermandiary.domain.file.FileList;
+import com.lodong.spring.supermandiary.repo.file.BusinessLicenseRepository;
+import com.lodong.spring.supermandiary.repo.file.FileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,9 +19,10 @@ import java.util.UUID;
 public class SaveFileService {
     private final FileRepository fileRepository;
     private final BusinessLicenseRepository businessLicenseRepository;
-    /*private final String STORAGE_ROOT_PATH = "C:\\Users\\seongminWoo\\Desktop\\outsourcing\\supermandiary\\supermandiary\\src\\main\\resources\\static";*/
-    private final String STORAGE_ROOT_PATH = "\\home\\lodong\\TestStorage\\";
-    private final String BUSINESSLICENSE_PATH = "\\business-license\\";
+    /*private final String STORAGE_ROOT_PATH = "C:\\Users\\seongminWoo\\Desktop\\outsourcing\\supermandiary\\supermandiary\\src\\main\\resources\\static";
+    private final String BUSINESSLICENSE_PATH = "\\";*/
+    private final String STORAGE_ROOT_PATH = "/home/lodong/TestStorage/";
+    private final String BUSINESSLICENSE_PATH = "business-license/";
 
     public void saveBusinessLicense(FileList businessLicense, String constructorId, MultipartFile file) throws NullPointerException {
         if (businessLicense != null) {

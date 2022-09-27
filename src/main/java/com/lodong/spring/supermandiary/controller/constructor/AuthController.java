@@ -2,8 +2,12 @@ package com.lodong.spring.supermandiary.controller.constructor;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.lodong.spring.supermandiary.domain.*;
+import com.lodong.spring.supermandiary.domain.file.FileList;
 import com.lodong.spring.supermandiary.dto.*;
+import com.lodong.spring.supermandiary.dto.address.AddressDTO;
 import com.lodong.spring.supermandiary.service.*;
+import com.lodong.spring.supermandiary.service.address.AddressService;
+import com.lodong.spring.supermandiary.service.file.SaveFileService;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONArray;
 import org.springframework.http.ResponseEntity;
@@ -21,14 +25,17 @@ public class AuthController {
     private final SaveFileService saveFileService;
     private final ConstructorInfoService constructorInfoService;
     private final UserConstructorInfoService userConstructorInfoService;
+    private final AddressService addressService;
 
     public AuthController(AuthService authService, CertifiedPhoneNumberService certifiedPhoneNumberService,
-                          SaveFileService saveFileService, ConstructorInfoService constructorInfoService, UserConstructorInfoService userConstructorInfoService) {
+                          SaveFileService saveFileService, ConstructorInfoService constructorInfoService, UserConstructorInfoService userConstructorInfoService,
+                            AddressService addressService) {
         this.authService = authService;
         this.certifiedPhoneNumberService = certifiedPhoneNumberService;
         this.saveFileService = saveFileService;
         this.constructorInfoService = constructorInfoService;
         this.userConstructorInfoService = userConstructorInfoService;
+        this.addressService = addressService;
     }
 
     @PostMapping("/registration-user")
@@ -72,10 +79,12 @@ public class AuthController {
     }
 
     @PostMapping(value = "/registration-constructor", consumes = {"multipart/form-data"})
-    public ResponseEntity<?> registrationConstructor(@RequestPart("file") MultipartFile file, @RequestPart ConstructorDTO constructorDTO, @RequestPart JSONArray jsonArray) throws JsonProcessingException {
+    public ResponseEntity<?> registrationConstructor(@RequestPart("file") MultipartFile file, @RequestPart ConstructorDTO constructorDTO,
+                                                     @RequestPart JSONArray jsonArray, @RequestPart AddressDTO addressDTO) throws JsonProcessingException {
         log.info(constructorDTO.toString());
         log.info(file.getOriginalFilename());
 
+        //시공사 정보 세팅
         Constructor constructor = Constructor.builder()
                 .id(UUID.randomUUID().toString())
                 .name(constructorDTO.getName())
@@ -84,6 +93,7 @@ public class AuthController {
                 .payManage(false)
                 .webAdminActive(false)
                 .build();
+        authService.registerConstructor(constructor);
 
         //파일 이름을 사업장 UUID + "-" + businessLicense 형태로 지음
         FileList fileList = FileList.builder()
@@ -92,9 +102,9 @@ public class AuthController {
                 .extension(file.getContentType())
                 .build();
 
-        authService.registerConstructor(constructor);
         saveFileService.saveBusinessLicense(fileList, constructor.getId(), file);
 
+        //사업자 보유 기술 세팅
         for (int i = 0; i < jsonArray.size(); i++) {
             LinkedHashMap<String, Object> jsonObject = (LinkedHashMap<String, Object>) jsonArray.get(i);
             String name = (String) jsonObject.get("name");
@@ -108,6 +118,9 @@ public class AuthController {
                     .build();
             constructorInfoService.registerService(constructorTechDetail);
         }
+
+        //주소 정보 세팅
+        addressService.settingConstructorAddress(addressDTO, constructor.getId());
 
 
         return ResponseEntity.ok(constructor);

@@ -1,4 +1,4 @@
-package com.lodong.spring.supermandiary.domain;
+package com.lodong.spring.supermandiary.domain.file;
 
 import lombok.*;
 
