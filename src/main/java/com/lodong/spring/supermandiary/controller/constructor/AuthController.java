@@ -148,19 +148,19 @@ public class AuthController {
     }
 
     @PostMapping("/do")
-    public ResponseEntity<?> auth(@RequestBody UserConstructorDTO user) {
+    public TokenInfo  auth(@RequestBody UserConstructorDTO user) throws Exception {
         log.info("user data received {}", user);
 
-        assert !user.getId().equals("");
+        assert !user.getPhoneNumber().equals("");
         assert !user.getPw().equals("");
-
         UserConstructor userConstructor = UserConstructor.builder()
                 .phoneNumber(user.getPhoneNumber())
                 .pw(user.getPw())
                 .build();
 
-        UserConstructor authResult = authService.auth(userConstructor);
-        if (authResult != null) return ResponseEntity.ok(authResult);
-        else return ResponseEntity.badRequest().body(userConstructor.getId());
+        TokenInfo tokenInfo = authService.auth(userConstructor);
+        log.info(tokenInfo.toString());
+        if (tokenInfo != null) return tokenInfo;
+        else throw new Exception();
     }
 }

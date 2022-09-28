@@ -10,4 +10,9 @@ class SupermandiaryApplicationTests {
 	void contextLoads() {
 	}
 
+	@Test
+	void 조인테스트(){
+
+	}
+
 }
