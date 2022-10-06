@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
     private final UserConstructorRepository userConstructorRepository;
     private final ConstructorRepository constructorRepository;
-
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final JwtTokenProvider jwtTokenProvider;
 

@@ -12,17 +12,15 @@ import javax.persistence.*;
 
 public class SiggAreas {
     @Id
-    private int id;
-    @Column(nullable = false)
-    private String name;
-    @Column(nullable = false)
     private int code;
     @Column(nullable = false)
-    private int sidoCode;
+    private String name;
+    /*@Column(nullable = false)
+    private int sidoCode;*/
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "code",insertable = false, updatable = false)
-    @JsonBackReference
+    @ManyToOne(targetEntity = SidoAreas.class, fetch = FetchType.EAGER)
+    @JoinColumn(name = "sidoCode")
+    //@JsonBackReference
     private SidoAreas sidoAreas;
 
     @PrePersist

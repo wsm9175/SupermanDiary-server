@@ -18,10 +18,10 @@ public class UserConstructor implements UserDetails {
     private String id;
     @Column(nullable = false)
     private String pw;
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name="userConstructor")
-    private Set<UserConstructorTech> constructorTeches = new LinkedHashSet<>();
 
+   /* @OneToMany(fetch = FetchType.EAGER)
+    private Set<UserConstructorTech> userConstructorTech;
+*/
     @Column(nullable = false)
     private String name;
     @Column(nullable = false, unique = true)
@@ -42,10 +42,8 @@ public class UserConstructor implements UserDetails {
     private boolean isCertification;
     @Column(nullable = false)
     private boolean agreeTerm;
-
     @ElementCollection(fetch = FetchType.EAGER)
-    @Builder.Default
-    private List<String> roles = new ArrayList<>();
+    private List<String> roles;
 
     @PrePersist
     public void prePersist() {

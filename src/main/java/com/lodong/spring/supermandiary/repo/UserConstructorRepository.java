@@ -12,6 +12,6 @@ public interface UserConstructorRepository extends JpaRepository<UserConstructor
     Optional<UserConstructor> findByPhoneNumber(String phoneNumber);
     boolean existsByPhoneNumber(String phoneNumber);
 
-    @Query(value = "select DISTINCT c from UserConstructor c left join fetch c.constructorTeches")
-    List<UserConstructor> findAllWithUserConstructorTech();
+/*    @Query(value = "select DISTINCT c from UserConstructor c left join fetch c.userConstructorTech")
+    List<UserConstructor> findAllWithUserConstructorTech();*/
 }

@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -29,19 +31,20 @@ public class AddressService {
                 sigg.append(i == 1 ? words[i] + " " : words[i]);
             }
         }
-
         log.info(sigg.toString());
-
         SiggAreas siggAreas = siggAreasRepository.findByName(sigg.toString()).orElseThrow();
-        int siggCode = siggAreas.getCode();
-
+        int siggCode = siggAreas.getSidoAreas().getCode();
         ConstructorAddress constructorAddress = ConstructorAddress.builder()
                 .constructorId(constructorId)
                 .siggCode(siggCode)
                 .address(address)
                 .addressDetail(addressDetail)
                 .build();
-
         constructorAddressRepository.save(constructorAddress);
     }
+
+    public List<SiggAreas> getAllArea(){
+        return siggAreasRepository.findAll();
+    }
+
 }

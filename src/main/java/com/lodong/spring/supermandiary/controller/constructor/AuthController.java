@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.transaction.Transactional;
 import java.util.*;
 
 @Slf4j
@@ -148,7 +149,7 @@ public class AuthController {
     }
 
     @PostMapping("/do")
-    public TokenInfo  auth(@RequestBody UserConstructorDTO user) throws Exception {
+    public TokenInfo auth(@RequestBody UserConstructorDTO user) throws Exception {
         log.info("user data received {}", user);
 
         assert !user.getPhoneNumber().equals("");

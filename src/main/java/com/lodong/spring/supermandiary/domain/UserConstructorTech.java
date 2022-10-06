@@ -5,9 +5,8 @@ import lombok.*;
 
 import javax.persistence.*;
 
-@Entity
-@Getter @Setter @ToString
-@Builder
+@Entity()
+@Getter @Setter @ToString @Builder
 @AllArgsConstructor @NoArgsConstructor
 @Embeddable
 public class UserConstructorTech {
@@ -22,7 +21,6 @@ public class UserConstructorTech {
     @JoinColumn(name = "id",insertable = false, updatable = false)
     @JsonBackReference
     private UserConstructor userConstructor;
-
 
     @PrePersist
     public void prePersist() {
