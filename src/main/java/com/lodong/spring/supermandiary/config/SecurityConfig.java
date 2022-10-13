@@ -30,7 +30,7 @@ public class SecurityConfig {
                 .antMatchers("/rest/v1/auth/**").permitAll()
                 .antMatchers("rest/v1/admin/**").hasRole("ADMIN")
                 .antMatchers("/rest/v1/**").hasRole("USER") //USER 권한이 있어야 요청할 수 있다는 설정이다.
-                .antMatchers("/rest/v1/**").hasRole("ADMIN") //USER 권한이 있어야 요청할 수 있다는 설정이다.
+                .antMatchers("/rest/v1/**").hasRole("ADMIN") //ADMIN 권한이 있어야 요청할 수 있다는 설정이다.
                 .anyRequest().authenticated() //이 밖에 모든 요청에 대해서 인증을 필요로 한다는 설정이다.
                 .and()
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
