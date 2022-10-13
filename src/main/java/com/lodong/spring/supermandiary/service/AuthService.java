@@ -3,6 +3,7 @@ package com.lodong.spring.supermandiary.service;
 import com.lodong.spring.supermandiary.domain.*;
 import com.lodong.spring.supermandiary.domain.file.FileList;
 import com.lodong.spring.supermandiary.dto.address.AddressDTO;
+import com.lodong.spring.supermandiary.dto.jwt.TokenRequestDTO;
 import com.lodong.spring.supermandiary.jwt.TokenInfo;
 import com.lodong.spring.supermandiary.jwt.JwtTokenProvider;
 import com.lodong.spring.supermandiary.repo.*;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.xml.bind.ValidationException;
 import java.io.File;
 import java.util.List;
 
@@ -87,6 +89,39 @@ public class AuthService {
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication);
 
         log.info("return");
+        return tokenInfo;
+    }
+
+    @Transactional
+    public TokenInfo reissue(TokenRequestDTO tokenRequestDTO) throws ValidationException, NullPointerException {
+        // 만료된 refresh token 에러
+        if(!jwtTokenProvider.validateToken(tokenRequestDTO.getRefreshToken())){
+            throw new ValidationException("유효기간지남");
+        }
+
+        // AccessToken 에서 UserName(pk) 가져오기
+        String accessToken = tokenRequestDTO.getAccessToken();
+        Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
+
+        //user pk로 유저 검색 / repo에 저장된 refresh token이 없으면 에러
+        UserConstructor userConstructor = userConstructorRepository.findById(authentication.getName())
+                .orElseThrow(NullPointerException::new);
+
+        String refreshToken = userConstructor.getRefreshToken();
+
+        if(refreshToken == null){
+            throw new NullPointerException("회원정보에 refreshToken 존재 X");
+        }
+
+        //리프레시 토큰 불일치 에러
+        if(!refreshToken.equals(tokenRequestDTO.getRefreshToken())){
+            throw new RuntimeException("회원정보의 refreshToken과 불일치");
+        }
+
+        // AccessToken, RefreshToken 토큰 재발급, 리프레쉬 토큰 저장
+        TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication);
+        insertRefreshToken(tokenInfo.getRefreshToken(), userConstructor.getPhoneNumber());
+
         return tokenInfo;
     }
 

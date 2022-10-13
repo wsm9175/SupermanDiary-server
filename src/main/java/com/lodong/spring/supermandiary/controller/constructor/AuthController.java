@@ -5,6 +5,7 @@ import com.lodong.spring.supermandiary.domain.file.FileList;
 import com.lodong.spring.supermandiary.dto.*;
 import com.lodong.spring.supermandiary.dto.address.AddressDTO;
 import com.lodong.spring.supermandiary.dto.auth.ConstructorIdDTO;
+import com.lodong.spring.supermandiary.dto.jwt.TokenRequestDTO;
 import com.lodong.spring.supermandiary.jwt.TokenInfo;
 import com.lodong.spring.supermandiary.responseentity.Message;
 import com.lodong.spring.supermandiary.responseentity.StatusEnum;
@@ -18,8 +19,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.xml.bind.ValidationException;
 import java.nio.charset.Charset;
 import java.util.*;
+
+import static com.lodong.spring.supermandiary.util.MakeResponseEntity.getResponseMessage;
 
 @Slf4j
 @RestController
@@ -239,33 +243,28 @@ public class AuthController {
         } else throw new Exception();
     }
 
-  /*  @PostMapping("/refresh")
-    public ResponseEntity<?> validateRefreshToken(@RequestBody HashMap<String, String> bodyJson) {
-        log.info("refresh controller 실행");
-        Map<String, String> map = jwtService.validateRefreshToken(bodyJson.get("refreshToken"));
-        if (map.get("status").equals("402")) {
-            log.info("RefreshController - Refresh Token이 만료.");
-            RefreshApiResponseMessage refreshApiResponseMessage = new RefreshApiResponseMessage(map);
-            return new ResponseEntity<RefreshApiResponseMessage>(refreshApiResponseMessage, HttpStatus.UNAUTHORIZED);
+    @PostMapping("/refresh")
+    public ResponseEntity<?> validateRefreshToken(@RequestBody TokenRequestDTO token) {
+        TokenInfo tokenInfo;
+        try {
+            tokenInfo = authService.reissue(token);
+        } catch (NullPointerException nullPointerException) {
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = nullPointerException.getMessage();
+            return getResponseMessage(statusEnum, message);
+        } catch (ValidationException validationException){
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = validationException.getMessage();
+            return getResponseMessage(statusEnum, message);
+        } catch (RuntimeException runtimeException){
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = runtimeException.getMessage();
+            return getResponseMessage(statusEnum, message);
         }
-
-        log.info("RefreshController - Refresh Token이 유효.");
-        RefreshApiResponseMessage refreshApiResponseMessage = new RefreshApiResponseMessage(map);
-        return new ResponseEntity<RefreshApiResponseMessage>(refreshApiResponseMessage, HttpStatus.OK);
-    }*/
-
-    public ResponseEntity getResponseMessage(StatusEnum status, String message, Object data) {
-        Message responseMessage = new Message(status, message, data);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
-        return new ResponseEntity<>(message, headers, HttpStatus.OK);
-    }
-
-    public ResponseEntity getResponseMessage(StatusEnum status, String message) {
-        Message responseMessage = new Message(status, message);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
-        return new ResponseEntity<>(responseMessage, headers, HttpStatus.BAD_REQUEST);
+        StatusEnum statusEnum = StatusEnum.OK;
+        String message = "토근 재발급 성공";
+        System.out.println(tokenInfo.toString());
+        return getResponseMessage(statusEnum, message, tokenInfo);
     }
 
     private TokenInfo loginAfterRegister(UserConstructor userConstructor) throws Exception {
