@@ -6,6 +6,7 @@ import com.lodong.spring.supermandiary.repo.file.BusinessLicenseRepository;
 import com.lodong.spring.supermandiary.repo.file.FileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -19,11 +20,12 @@ import java.util.UUID;
 public class SaveFileService {
     private final FileRepository fileRepository;
     private final BusinessLicenseRepository businessLicenseRepository;
-    /*private final String STORAGE_ROOT_PATH = "C:\\Users\\seongminWoo\\Desktop\\outsourcing\\supermandiary\\supermandiary\\src\\main\\resources\\static";
-    private final String BUSINESSLICENSE_PATH = "\\";*/
-    private final String STORAGE_ROOT_PATH = "/home/lodong/TestStorage/";
-    private final String BUSINESSLICENSE_PATH = "business-license/";
+    private final String STORAGE_ROOT_PATH = "C:\\Users\\seongminWoo\\Desktop\\outsourcing\\supermandiary\\supermandiary\\src\\main\\resources\\static";
+    private final String BUSINESSLICENSE_PATH = "\\";
+  /*  private final String STORAGE_ROOT_PATH = "/home/lodong/TestStorage/";
+    private final String BUSINESSLICENSE_PATH = "business-license/";*/
 
+    @Transactional
     public void saveBusinessLicense(FileList businessLicense, String constructorId, MultipartFile file) throws NullPointerException {
         if (businessLicense != null) {
             //저장경로 및 생성시간 설정

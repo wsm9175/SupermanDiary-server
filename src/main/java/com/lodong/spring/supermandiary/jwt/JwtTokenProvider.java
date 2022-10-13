@@ -1,6 +1,5 @@
 package com.lodong.spring.supermandiary.jwt;
 
-import com.lodong.spring.supermandiary.domain.TokenInfo;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -14,9 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -24,7 +21,7 @@ import java.util.stream.Collectors;
 public class JwtTokenProvider {
     private final Key key;
     private final String secretKey = "VlwEyVBsYt9V7zq57TejMnVUyzblYcfPQye08f7MGVA9XkHa";
-
+    private final long validTime = 86400000;
 
     public JwtTokenProvider() {
         byte[] keyBytes = Decoders.BASE64.decode(this.secretKey);
@@ -40,7 +37,7 @@ public class JwtTokenProvider {
 
         long now = (new Date()).getTime();
         // Access Token 생성
-        Date accessTokenExpiresIn = new Date(now + 86400000);
+        Date accessTokenExpiresIn = new Date(now + validTime);
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim("auth", authorities)
@@ -68,6 +65,7 @@ public class JwtTokenProvider {
 
         if (claims.get("auth") == null) {
             throw new RuntimeException("권한 정보가 없는 토큰입니다.");
+
         }
 
         // 클레임에서 권한 정보 가져오기
@@ -80,6 +78,8 @@ public class JwtTokenProvider {
         UserDetails principal = new User(claims.getSubject(), "", authorities);
         return new UsernamePasswordAuthenticationToken(principal, "", authorities);
     }
+
+
 
     // 토큰 정보를 검증하는 메서드
     public boolean validateToken(String token) {
@@ -105,4 +105,47 @@ public class JwtTokenProvider {
             return e.getClaims();
         }
     }
+
+    public String validateRefreshToken(String refreshToken){
+        try{
+            Jws<Claims> claims = Jwts.parser().setSigningKey(key).parseClaimsJws(refreshToken);
+
+            //refresh 토큰의 만료시간이 지나지 않았을 경우, 새로운 access 토큰을 생성합니다.
+            if (!claims.getBody().getExpiration().before(new Date())) {
+                return recreationAccessToken(claims.getBody().get("sub").toString(), claims.getBody().get("roles"));
+            }
+        }catch (Exception e){
+            return null;
+        }
+        return null;
+    }
+
+    public String recreationAccessToken(String id, Object roles){
+        Claims claims = Jwts.claims().setSubject(id); // JWT payload 에 저장되는 정보단위
+        claims.put("roles", roles); // 정보는 key / value 쌍으로 저장된다.
+        Date now = new Date();
+
+        //Access Token
+        String accessToken = Jwts.builder()
+                .setClaims(claims) // 정보 저장
+                .setIssuedAt(now) // 토큰 발행 시간 정보
+                .setExpiration(new Date(now.getTime() + validTime)) // set Expire Time
+                .signWith(key ,SignatureAlgorithm.HS256)  // 사용할 암호화 알고리즘과
+                // signature 에 들어갈 secret값 세팅
+                .compact();
+
+        return accessToken;
+    }
+
+  /*  // JWT 토큰에서 인증 정보 조회
+    public Authentication getAuthentication(String token) {
+        UserDetails userDetails = userDetailsService.loadUserByUsername(this.getUserPk(token));
+        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+    }*/
+
+    // 토큰에서 회원 정보 추출
+    public String getUserPk(String token) {
+        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
+    }
+
 }

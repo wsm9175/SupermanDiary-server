@@ -8,6 +8,7 @@ import com.lodong.spring.supermandiary.repo.address.SiggAreasRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -18,6 +19,7 @@ public class AddressService {
     private final SiggAreasRepository siggAreasRepository;
     private final ConstructorAddressRepository constructorAddressRepository;
 
+    @Transactional
     public void settingConstructorAddress(AddressDTO addressDTO, String constructorId){
         String address = addressDTO.getAddress();
         String addressDetail = addressDTO.getAddressDetail();

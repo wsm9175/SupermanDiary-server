@@ -1,4 +1,4 @@
-package com.lodong.spring.supermandiary.domain;
+package com.lodong.spring.supermandiary.jwt;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

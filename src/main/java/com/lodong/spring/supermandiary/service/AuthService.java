@@ -1,11 +1,13 @@
 package com.lodong.spring.supermandiary.service;
 
-import com.lodong.spring.supermandiary.domain.Constructor;
-import com.lodong.spring.supermandiary.domain.UserConstructor;
-import com.lodong.spring.supermandiary.domain.TokenInfo;
+import com.lodong.spring.supermandiary.domain.*;
+import com.lodong.spring.supermandiary.domain.file.FileList;
+import com.lodong.spring.supermandiary.dto.address.AddressDTO;
+import com.lodong.spring.supermandiary.jwt.TokenInfo;
 import com.lodong.spring.supermandiary.jwt.JwtTokenProvider;
-import com.lodong.spring.supermandiary.repo.ConstructorRepository;
-import com.lodong.spring.supermandiary.repo.UserConstructorRepository;
+import com.lodong.spring.supermandiary.repo.*;
+import com.lodong.spring.supermandiary.service.address.AddressService;
+import com.lodong.spring.supermandiary.service.file.SaveFileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,6 +15,10 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -23,27 +29,49 @@ public class AuthService {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public void register(UserConstructor user) {
-        if (isDuplicated(user.getEmail())) throw new IllegalStateException();
-        UserConstructor savedUser = userConstructorRepository.save(user);
+    private final AffiliatedInfoRepository affiliatedInfoRepository;
+
+    private final ConstructorTechDetailRepository constructorTechDetailRepository;
+    private final UserConstructorTechRepository userConstructorTechRepository;
+    private final SaveFileService saveFileService;
+    private final AddressService addressService;
+
+    @Transactional
+    public void register(UserConstructor user, List<UserConstructorTech> userConstructorTechList, AffiliatedInfo affiliatedInfo) throws IllegalStateException, Exception {
+        if (isDuplicated(user.getEmail())) throw new IllegalStateException("이메일 중복값 존재");
+        try {
+            userConstructorRepository.save(user);
+            userConstructorTechRepository.saveAll(userConstructorTechList);
+            affiliatedInfoRepository.save(affiliatedInfo);
+        }catch (NullPointerException nullPointerException){
+            System.out.println(nullPointerException.getMessage());
+            throw new NullPointerException("빈 값 존재");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw new Exception("데이터 베이스 저장 실패");
+        }
         //채팅관련 유저 등록 코드 포함 예정 using savedUser
     }
 
-    public void registerConstructor(Constructor constructor) {
+    @Transactional
+    public void registerConstructor(UserConstructor userConstructor, Constructor constructor, FileList fileList,
+                                    MultipartFile file, AddressDTO addressDTO, List<ConstructorTechDetail> constructorTechDetailList,
+                                    AffiliatedInfo affiliatedInfo) throws IllegalStateException, Exception {
         if (isDuplicated(constructor.getId())) throw new IllegalStateException();
-        //시공사 save
-        constructorRepository.save(constructor);
+
+        try {
+            userConstructorRepository.save(userConstructor);
+            constructorRepository.save(constructor);
+            saveFileService.saveBusinessLicense(fileList, constructor.getId(), file);
+            addressService.settingConstructorAddress(addressDTO, constructor.getId());
+            constructorTechDetailRepository.saveAll(constructorTechDetailList);
+            affiliatedInfoRepository.save(affiliatedInfo);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw new Exception("데이터 베이스 저장 실패");
+        }
     }
 
-    /* public UserConstructor auth(UserConstructor user){
-         UserConstructor userConstructor = userConstructorRepository.findByPhoneNumber(user.getPhoneNumber()).orElseThrow();
-         if(userConstructor.getPw().equals(user.getPw())){
-             return UserConstructor.getPublicProfile(userConstructor);
-         }else{
-             return null;
-         }
-     }
- */
     @Transactional
     public TokenInfo auth(UserConstructor user) {
         log.info("UsernamePasswordAuthenticationToken");
@@ -68,5 +96,9 @@ public class AuthService {
 
     public boolean isDuplicatedConstructor(String id) {
         return userConstructorRepository.existsById(id);
+    }
+
+    public void insertRefreshToken(String refreshToken, String phoneNumber) {
+        userConstructorRepository.insertRefreshToken(refreshToken, phoneNumber);
     }
 }

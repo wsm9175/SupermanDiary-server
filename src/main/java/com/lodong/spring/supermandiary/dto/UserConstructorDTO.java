@@ -1,8 +1,8 @@
 package com.lodong.spring.supermandiary.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.ToString;
-
 @Data @ToString
 public class UserConstructorDTO {
     private String id;
@@ -17,5 +17,7 @@ public class UserConstructorDTO {
     private boolean agreeTerm;
     private int ageGroup;
     private int career;
+    private String sex;
+    private String wireService;
 
 }

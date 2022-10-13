@@ -1,20 +1,24 @@
 package com.lodong.spring.supermandiary.controller.constructor;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.lodong.spring.supermandiary.domain.*;
 import com.lodong.spring.supermandiary.domain.file.FileList;
 import com.lodong.spring.supermandiary.dto.*;
 import com.lodong.spring.supermandiary.dto.address.AddressDTO;
+import com.lodong.spring.supermandiary.dto.auth.ConstructorIdDTO;
+import com.lodong.spring.supermandiary.jwt.TokenInfo;
+import com.lodong.spring.supermandiary.responseentity.Message;
+import com.lodong.spring.supermandiary.responseentity.StatusEnum;
 import com.lodong.spring.supermandiary.service.*;
-import com.lodong.spring.supermandiary.service.address.AddressService;
-import com.lodong.spring.supermandiary.service.file.SaveFileService;
 import lombok.extern.slf4j.Slf4j;
-import org.json.simple.JSONArray;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.transaction.Transactional;
+import java.nio.charset.Charset;
 import java.util.*;
 
 @Slf4j
@@ -23,30 +27,29 @@ import java.util.*;
 public class AuthController {
     private final AuthService authService;
     private final CertifiedPhoneNumberService certifiedPhoneNumberService;
-    private final SaveFileService saveFileService;
-    private final ConstructorInfoService constructorInfoService;
-    private final UserConstructorInfoService userConstructorInfoService;
-    private final AddressService addressService;
 
-    public AuthController(AuthService authService, CertifiedPhoneNumberService certifiedPhoneNumberService,
-                          SaveFileService saveFileService, ConstructorInfoService constructorInfoService, UserConstructorInfoService userConstructorInfoService,
-                            AddressService addressService) {
+    private final PasswordEncoder passwordEncoder;
+
+    public AuthController(AuthService authService, CertifiedPhoneNumberService certifiedPhoneNumberService, PasswordEncoder passwordEncoder) {
         this.authService = authService;
         this.certifiedPhoneNumberService = certifiedPhoneNumberService;
-        this.saveFileService = saveFileService;
-        this.constructorInfoService = constructorInfoService;
-        this.userConstructorInfoService = userConstructorInfoService;
-        this.addressService = addressService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/registration-user")
-    public ResponseEntity<?> registration(@RequestPart UserConstructorDTO user, @RequestPart JSONArray jsonArray) {
+    public ResponseEntity<?> registration(@RequestPart UserConstructorDTO user, @RequestPart List<UserConstructorTechDTO> jsonArray
+            , @RequestPart ConstructorIdDTO constructorId) {
         log.info("user data received");
-        log.info("user : "+user.toString());
+        log.info("user : " + user.toString());
 
-        UserConstructor userConstructor = UserConstructor.builder()
-                .id(UUID.randomUUID().toString())
+        UserConstructor userConstructorForLogin = UserConstructor.builder()
                 .pw(user.getPw())
+                .phoneNumber(user.getPhoneNumber())
+                .build();
+
+        UserConstructor userConstructorEncode = UserConstructor.builder()
+                .id(UUID.randomUUID().toString())
+                .pw(passwordEncoder.encode(user.getPw()))
                 .name(user.getName())
                 .phoneNumber(user.getPhoneNumber())
                 .email(user.getEmail())
@@ -57,33 +60,84 @@ public class AuthController {
                 .agreeTerm(user.isAgreeTerm())
                 .ageGroup(user.getAgeGroup())
                 .career(user.getCareer())
+                .roles(Collections.singletonList("USER"))
+                .sex(user.getSex())
+                .wireService(user.getWireService())
                 .build();
+        List<UserConstructorTech> userConstructorTechList = new ArrayList<>();
 
-        authService.register(userConstructor);
-
-        for (int i = 0; i < jsonArray.size(); i++) {
-            LinkedHashMap<String, Object> jsonObject = (LinkedHashMap<String, Object>) jsonArray.get(i);
-            String name = (String) jsonObject.get("name");
-
-            UserConstructorTechDTO userConstructorTechDto = new UserConstructorTechDTO();
-            userConstructorTechDto.setName(name);
-
+        for (UserConstructorTechDTO userConstructorTechDTO : jsonArray) {
+            log.info(userConstructorTechDTO.toString());
             UserConstructorTech userConstructorTech = UserConstructorTech.builder()
                     .id(UUID.randomUUID().toString())
-                    .userConstructorId(userConstructor.getId())
-                    .techName(userConstructorTechDto.getName())
+                    .userConstructorId(userConstructorEncode.getId())
+                    .techName(userConstructorTechDTO.getName())
                     .build();
-            userConstructorInfoService.registerService(userConstructorTech);
+            userConstructorTechList.add(userConstructorTech);
         }
 
-        return ResponseEntity.ok(user);
+        Constructor constructor = Constructor.builder()
+                .id(constructorId.getConstructorId())
+                .build();
+
+        AffiliatedInfo affiliatedInfo = AffiliatedInfo.builder()
+                .constructor(constructor)
+                .userConstructor(userConstructorEncode)
+                .build();
+
+        try {
+            authService.register(userConstructorEncode, userConstructorTechList, affiliatedInfo);
+        } catch (IllegalStateException illegalStateException) {
+            log.info(illegalStateException.getMessage());
+            StatusEnum status = StatusEnum.BAD_REQUEST;
+            String message = illegalStateException.getMessage();
+            return getResponseMessage(status, message);
+        } catch (Exception e) {
+            log.info(e.getMessage());
+            StatusEnum status = StatusEnum.BAD_REQUEST;
+            String message = e.getMessage();
+            return getResponseMessage(status, message);
+        }
+
+        try {
+            TokenInfo tokenInfo = loginAfterRegister(userConstructorForLogin);
+            return ResponseEntity.ok(tokenInfo);
+        } catch (Exception e) {
+            StatusEnum status = StatusEnum.BAD_REQUEST;
+            String message = e.getMessage();
+            return getResponseMessage(status, message);
+        }
     }
 
     @PostMapping(value = "/registration-constructor", consumes = {"multipart/form-data"})
     public ResponseEntity<?> registrationConstructor(@RequestPart("file") MultipartFile file, @RequestPart ConstructorDTO constructorDTO,
-                                                     @RequestPart JSONArray jsonArray, @RequestPart AddressDTO addressDTO) throws JsonProcessingException {
+                                                     @RequestPart List<ConstructorTechDetailDTO> jsonArray, @RequestPart AddressDTO addressDTO, @RequestPart UserConstructorDTO user) {
         log.info(constructorDTO.toString());
         log.info(file.getOriginalFilename());
+
+        //유저 정보 세팅
+        UserConstructor userConstructorEncode = UserConstructor.builder()
+                .id(UUID.randomUUID().toString())
+                .pw(passwordEncoder.encode(user.getPw()))
+                .name(user.getName())
+                .phoneNumber(user.getPhoneNumber())
+                .email(user.getEmail())
+                .isCeo(user.isCeo())
+                .active(false)
+                .accept(false)
+                .isCertification(user.isCertification())
+                .agreeTerm(user.isAgreeTerm())
+                .ageGroup(user.getAgeGroup())
+                .career(user.getCareer())
+                .sex(user.getSex())
+                .wireService(user.getWireService())
+                .roles(Collections.singletonList("ADMIN"))
+                .build();
+
+        UserConstructor userConstructorForLogin = UserConstructor.builder()
+                .pw(user.getPw())
+                .phoneNumber(user.getPhoneNumber())
+                .build();
 
         //시공사 정보 세팅
         Constructor constructor = Constructor.builder()
@@ -94,7 +148,6 @@ public class AuthController {
                 .payManage(false)
                 .webAdminActive(false)
                 .build();
-        authService.registerConstructor(constructor);
 
         //파일 이름을 사업장 UUID + "-" + businessLicense 형태로 지음
         FileList fileList = FileList.builder()
@@ -103,28 +156,47 @@ public class AuthController {
                 .extension(file.getContentType())
                 .build();
 
-        saveFileService.saveBusinessLicense(fileList, constructor.getId(), file);
+        List<ConstructorTechDetail> constructorTechDetailList = new ArrayList<>();
 
         //사업자 보유 기술 세팅
-        for (int i = 0; i < jsonArray.size(); i++) {
-            LinkedHashMap<String, Object> jsonObject = (LinkedHashMap<String, Object>) jsonArray.get(i);
-            String name = (String) jsonObject.get("name");
-            ConstructorTechDetailDTO constructorTechDetailDTO = new ConstructorTechDetailDTO();
-            constructorTechDetailDTO.setName(name);
-
+        for (ConstructorTechDetailDTO constructorTechDetailDTO : jsonArray) {
+            log.info(constructorTechDetailDTO.toString());
             ConstructorTechDetail constructorTechDetail = ConstructorTechDetail.builder()
                     .id(UUID.randomUUID().toString())
                     .constructorId(constructor.getId())
-                    .name(name)
+                    .name(constructorDTO.getName())
                     .build();
-            constructorInfoService.registerService(constructorTechDetail);
+
+            constructorTechDetailList.add(constructorTechDetail);
         }
 
-        //주소 정보 세팅
-        addressService.settingConstructorAddress(addressDTO, constructor.getId());
+        AffiliatedInfo affiliatedInfo = AffiliatedInfo.builder()
+                .constructor(constructor)
+                .userConstructor(userConstructorEncode)
+                .build();
 
+        try {
 
-        return ResponseEntity.ok(constructor);
+            authService.registerConstructor(userConstructorEncode, constructor, fileList, file, addressDTO, constructorTechDetailList, affiliatedInfo);
+
+        } catch (IllegalStateException illegalStateException) {
+            StatusEnum status = StatusEnum.BAD_REQUEST;
+            String message = illegalStateException.getMessage();
+            return getResponseMessage(status, message);
+        } catch (Exception e) {
+            StatusEnum status = StatusEnum.BAD_REQUEST;
+            String message = e.getMessage();
+            return getResponseMessage(status, message);
+        }
+
+        try {
+            TokenInfo tokenInfo = loginAfterRegister(userConstructorForLogin);
+            return ResponseEntity.ok(tokenInfo);
+        } catch (Exception e) {
+            StatusEnum status = StatusEnum.BAD_REQUEST;
+            String message = e.getMessage();
+            return getResponseMessage(status, message);
+        }
     }
 
     @PostMapping("/duplicate-check")
@@ -158,10 +230,51 @@ public class AuthController {
                 .phoneNumber(user.getPhoneNumber())
                 .pw(user.getPw())
                 .build();
-
         TokenInfo tokenInfo = authService.auth(userConstructor);
         log.info(tokenInfo.toString());
-        if (tokenInfo != null) return tokenInfo;
-        else throw new Exception();
+        if (tokenInfo != null) {
+            String refreshToken = tokenInfo.getRefreshToken();
+            authService.insertRefreshToken(refreshToken, user.getPhoneNumber());
+            return tokenInfo;
+        } else throw new Exception();
+    }
+
+  /*  @PostMapping("/refresh")
+    public ResponseEntity<?> validateRefreshToken(@RequestBody HashMap<String, String> bodyJson) {
+        log.info("refresh controller 실행");
+        Map<String, String> map = jwtService.validateRefreshToken(bodyJson.get("refreshToken"));
+        if (map.get("status").equals("402")) {
+            log.info("RefreshController - Refresh Token이 만료.");
+            RefreshApiResponseMessage refreshApiResponseMessage = new RefreshApiResponseMessage(map);
+            return new ResponseEntity<RefreshApiResponseMessage>(refreshApiResponseMessage, HttpStatus.UNAUTHORIZED);
+        }
+
+        log.info("RefreshController - Refresh Token이 유효.");
+        RefreshApiResponseMessage refreshApiResponseMessage = new RefreshApiResponseMessage(map);
+        return new ResponseEntity<RefreshApiResponseMessage>(refreshApiResponseMessage, HttpStatus.OK);
+    }*/
+
+    public ResponseEntity getResponseMessage(StatusEnum status, String message, Object data) {
+        Message responseMessage = new Message(status, message, data);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
+        return new ResponseEntity<>(message, headers, HttpStatus.OK);
+    }
+
+    public ResponseEntity getResponseMessage(StatusEnum status, String message) {
+        Message responseMessage = new Message(status, message);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
+        return new ResponseEntity<>(responseMessage, headers, HttpStatus.BAD_REQUEST);
+    }
+
+    private TokenInfo loginAfterRegister(UserConstructor userConstructor) throws Exception {
+        TokenInfo tokenInfo = authService.auth(userConstructor);
+        log.info(tokenInfo.toString());
+        if (tokenInfo != null) {
+            String refreshToken = tokenInfo.getRefreshToken();
+            authService.insertRefreshToken(refreshToken, userConstructor.getPhoneNumber());
+            return tokenInfo;
+        } else throw new Exception();
     }
 }

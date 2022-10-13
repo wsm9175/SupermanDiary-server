@@ -33,7 +33,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         log.info(userConstructor.toString());
         return User.builder()
                 .username(userConstructor.getId())
-                .password(passwordEncoder.encode(userConstructor.getPassword()))
+                .password(userConstructor.getPassword())
                 .roles(userConstructor.getRoles().toArray(new String[0]))
                 .build();
     }
