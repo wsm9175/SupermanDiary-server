@@ -1,10 +1,13 @@
 package com.lodong.spring.supermandiary.service;
 
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
+import com.lodong.spring.supermandiary.domain.constructor.ConstructorProduct;
 import com.lodong.spring.supermandiary.domain.create.RequestOrder;
 import com.lodong.spring.supermandiary.domain.create.RequestOrderProduct;
-import com.lodong.spring.supermandiary.dto.create.ChoiceProduct;
+import com.lodong.spring.supermandiary.dto.create.ChoiceProductDto;
+import com.lodong.spring.supermandiary.dto.create.ConstructorProductDto;
 import com.lodong.spring.supermandiary.dto.create.RequestOrderDto;
+import com.lodong.spring.supermandiary.repo.ConstructorProductRepository;
 import com.lodong.spring.supermandiary.repo.RequestOrderProductRepository;
 import com.lodong.spring.supermandiary.repo.RequestOrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +21,7 @@ import java.util.List;
 public class CreateService {
     private final RequestOrderRepository requestOrderRepository;
     private final RequestOrderProductRepository requestOrderProductRepository;
+    private final ConstructorProductRepository constructorProductRepository;
 
     public List<RequestOrderDto> getRequestOrderList(String token) throws NullPointerException {
         Constructor constructor = Constructor.builder()
@@ -31,13 +35,13 @@ public class CreateService {
 
         for (RequestOrder requestOrder : requestOrderList) {
             RequestOrderDto requestOrderDto = new RequestOrderDto();
-            List<ChoiceProduct> choiceProducts = new ArrayList<>();
+            List<ChoiceProductDto> choiceProducts = new ArrayList<>();
 
             List<RequestOrderProduct> requestOrderProductList =
                     requestOrderProductRepository.findRequestOrderProductByRequestOrder(requestOrder).orElseThrow(() -> new NullPointerException("주문 상품이 없음."));
 
             for (RequestOrderProduct requestOrderProduct : requestOrderProductList) {
-                ChoiceProduct choiceProduct = new ChoiceProduct();
+                ChoiceProductDto choiceProduct = new ChoiceProductDto();
                 choiceProduct.setId(requestOrderProduct.getConstructorProduct().getId());
                 choiceProduct.setName(requestOrderProduct.getConstructorProduct().getName());
                 choiceProducts.add(choiceProduct);
@@ -59,6 +63,28 @@ public class CreateService {
             requestOrderDtoList.add(requestOrderDto);
         }
         return requestOrderDtoList;
+    }
+
+    public List<ConstructorProductDto> getProductList(String constructorId) throws NullPointerException{
+        Constructor constructor = Constructor.builder()
+                .id(constructorId)
+                .build();
+
+        List<ConstructorProduct> constructorProducts = constructorProductRepository
+                .findConstructorProductByConstructor(constructor)
+                .orElseThrow(()->new NullPointerException("소속된 시공사의 등록된 상품정보가 존재하지 않습니다."));
+
+        List<ConstructorProductDto> constructorProductDtos = new ArrayList<>();
+
+        for(ConstructorProduct constructorProduct:constructorProducts){
+            ConstructorProductDto constructorProductDto = new ConstructorProductDto();
+            constructorProductDto.setId(constructorProduct.getId());
+            constructorProductDto.setName(constructorProduct.getName());
+            constructorProductDtos.add(constructorProductDto);
+        }
+
+        return constructorProductDtos;
+
     }
 
 }

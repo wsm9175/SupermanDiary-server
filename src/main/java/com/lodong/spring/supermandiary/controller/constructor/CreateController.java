@@ -2,6 +2,7 @@ package com.lodong.spring.supermandiary.controller.constructor;
 
 import com.lodong.spring.supermandiary.domain.AffiliatedInfo;
 import com.lodong.spring.supermandiary.domain.create.RequestOrder;
+import com.lodong.spring.supermandiary.dto.create.ConstructorProductDto;
 import com.lodong.spring.supermandiary.dto.create.RequestOrderDto;
 import com.lodong.spring.supermandiary.jwt.JwtTokenProvider;
 import com.lodong.spring.supermandiary.responseentity.StatusEnum;
@@ -30,7 +31,7 @@ public class CreateController {
         this.createService = createService;
     }
 
-    @GetMapping("/get/req-order")
+    @GetMapping("/req-order")
     public ResponseEntity<?> getRequestOrder(@RequestHeader(name = "Authorization") String token) {
         String constructorId = getConstructorId(token);
 
@@ -49,5 +50,22 @@ public class CreateController {
         String userUuid = jwtTokenProvider.getUserUuid(token.substring(7));
         AffiliatedInfo affiliatedInfo = myInfoService.getAffiliatedInfo(userUuid);
         return affiliatedInfo.getConstructor().getId();
+    }
+
+    @GetMapping("/product/list")
+    public ResponseEntity<?> getProductList(@RequestHeader(name = "Authorization") String token){
+        String constructorId = getConstructorId(token);
+
+        try{
+            List<ConstructorProductDto> constructorProductDtos = createService
+                    .getProductList(constructorId);
+            StatusEnum statusEnum = StatusEnum.OK;
+            String message = "소속된 시공사의 상품 목록";
+            return getResponseMessage(statusEnum, message, constructorProductDtos);
+        }catch (NullPointerException e){
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = e.getMessage();
+            return getResponseMessage(statusEnum, message);
+        }
     }
 }

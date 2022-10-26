@@ -19,5 +19,5 @@ public class RequestOrderDto {
     private String otherHomeName;
     private String otherHomeAddressDetail;
 
-    private List<ChoiceProduct> choiceProducts;
+    private List<ChoiceProductDto> choiceProducts;
 }
