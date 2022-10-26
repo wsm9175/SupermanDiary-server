@@ -140,5 +140,18 @@ public class JwtTokenProvider {
     public String getUserPk(String token) {
         return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
     }
+    public String getUserUuid(String accessToken) {
+        // 토큰 복호화
+        Claims claims = parseClaims(accessToken);
+
+        String userUuid = claims.getSubject();
+
+        if (userUuid == null) {
+            throw new RuntimeException("로그인 정보가 없는 토큰입니다.");
+
+        }
+
+        return userUuid;
+    }
 
 }

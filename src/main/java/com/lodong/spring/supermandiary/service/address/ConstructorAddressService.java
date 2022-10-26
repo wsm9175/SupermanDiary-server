@@ -1,6 +1,6 @@
 package com.lodong.spring.supermandiary.service.address;
 
-import com.lodong.spring.supermandiary.domain.ConstructorWorkArea;
+import com.lodong.spring.supermandiary.domain.constructor.ConstructorWorkArea;
 import com.lodong.spring.supermandiary.repo.address.ConstructorWorkAreaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,9 +25,7 @@ public class ConstructorAddressService {
     }
 
     @Transactional
-    public void addWorkAreas(List<ConstructorWorkArea> constructorWorkAreas){
-        for(ConstructorWorkArea constructorWorkArea:constructorWorkAreas){
-            constructorWorkAreaRepository.save(constructorWorkArea);
-        }
+    public void addWorkAreas(List<ConstructorWorkArea> constructorWorkAreas) {
+        constructorWorkAreaRepository.saveAll(constructorWorkAreas);
     }
 }

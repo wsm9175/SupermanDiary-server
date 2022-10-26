@@ -1,7 +1,5 @@
-package com.lodong.spring.supermandiary.domain;
+package com.lodong.spring.supermandiary.domain.constructor;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.lodong.spring.supermandiary.domain.Constructor;
 import com.lodong.spring.supermandiary.domain.address.SiggAreas;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
@@ -9,17 +7,27 @@ import lombok.extern.slf4j.Slf4j;
 import javax.persistence.*;
 
 @Slf4j
-@Entity @ToString
-@Builder @Getter @Setter
-@AllArgsConstructor @NoArgsConstructor
-@Table(name = "constructor_work_area")
+@Entity
+@ToString
+@Builder
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Table(name = "constructor_work_area",
+        uniqueConstraints = {
+            @UniqueConstraint(
+                    name = "constructor_id",
+                    columnNames = {"constructor_id", "sigg_code"}
+            )
+        }
+)
 public class ConstructorWorkArea {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     @ManyToOne(targetEntity = Constructor.class, fetch = FetchType.EAGER)
-    @JoinColumn(name = "constructor_id")
-    @JsonBackReference
+    @JoinColumn(name = "constructor_id", referencedColumnName = "id")
     private Constructor constructor;
 
     @ManyToOne(targetEntity = SiggAreas.class, fetch = FetchType.EAGER)
@@ -31,5 +39,4 @@ public class ConstructorWorkArea {
     public void prePersist() {
 
     }
-
 }

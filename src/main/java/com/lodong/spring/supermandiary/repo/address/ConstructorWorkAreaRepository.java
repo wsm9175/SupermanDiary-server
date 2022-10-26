@@ -1,7 +1,6 @@
 package com.lodong.spring.supermandiary.repo.address;
 
-import com.lodong.spring.supermandiary.domain.Constructor;
-import com.lodong.spring.supermandiary.domain.ConstructorWorkArea;
+import com.lodong.spring.supermandiary.domain.constructor.ConstructorWorkArea;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

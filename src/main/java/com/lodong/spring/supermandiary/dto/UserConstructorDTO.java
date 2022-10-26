@@ -19,5 +19,4 @@ public class UserConstructorDTO {
     private int career;
     private String sex;
     private String wireService;
-
 }

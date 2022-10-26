@@ -22,11 +22,4 @@ public class Message {
         this.status = status;
         this.message = message;
     }
-
-   /* public Message(){
-        this.status
-        this.data = null;
-    }*/
-
-
 }

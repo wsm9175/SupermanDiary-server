@@ -1,16 +1,53 @@
 package com.lodong.spring.supermandiary.controller.constructor;
 
+import com.lodong.spring.supermandiary.domain.AffiliatedInfo;
+import com.lodong.spring.supermandiary.domain.create.RequestOrder;
+import com.lodong.spring.supermandiary.dto.create.RequestOrderDto;
+import com.lodong.spring.supermandiary.jwt.JwtTokenProvider;
+import com.lodong.spring.supermandiary.responseentity.StatusEnum;
+import com.lodong.spring.supermandiary.service.CreateService;
+import com.lodong.spring.supermandiary.service.MyInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
+
+import static com.lodong.spring.supermandiary.util.MakeResponseEntity.*;
 
 @Slf4j
 @RestController
 @RequestMapping("rest/v1/create/construct")
 public class CreateController {
+    private final JwtTokenProvider jwtTokenProvider;
+    private final MyInfoService myInfoService;
 
+    private final CreateService createService;
 
+    public CreateController(JwtTokenProvider jwtTokenProvider, MyInfoService myInfoService, CreateService createService) {
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.myInfoService = myInfoService;
+        this.createService = createService;
+    }
+
+    @GetMapping("/get/req-order")
+    public ResponseEntity<?> getRequestOrder(@RequestHeader(name = "Authorization") String token) {
+        String constructorId = getConstructorId(token);
+
+        try {
+            List<RequestOrderDto> requestOrderList = createService.getRequestOrderList(constructorId);
+            StatusEnum statusEnum = StatusEnum.OK;
+            String message = "소속된 시공사 전자계약서 요청건 목록";
+            return getResponseMessage(statusEnum, message, requestOrderList);
+        }catch (NullPointerException e){
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = e.getMessage();
+            return getResponseMessage(statusEnum, message);
+        }
+    }
+    private String getConstructorId(String token) throws NullPointerException {
+        String userUuid = jwtTokenProvider.getUserUuid(token.substring(7));
+        AffiliatedInfo affiliatedInfo = myInfoService.getAffiliatedInfo(userUuid);
+        return affiliatedInfo.getConstructor().getId();
+    }
 }

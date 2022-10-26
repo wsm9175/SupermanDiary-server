@@ -1,35 +1,49 @@
 package com.lodong.spring.supermandiary.controller.constructor;
 
+import com.lodong.spring.supermandiary.domain.AffiliatedInfo;
 import com.lodong.spring.supermandiary.domain.Apartment;
-import com.lodong.spring.supermandiary.domain.Constructor;
-import com.lodong.spring.supermandiary.domain.ConstructorWorkArea;
+import com.lodong.spring.supermandiary.domain.constructor.Constructor;
+import com.lodong.spring.supermandiary.domain.constructor.ConstructorWorkArea;
 import com.lodong.spring.supermandiary.domain.address.SiggAreas;
 import com.lodong.spring.supermandiary.dto.ConstructorWorkAreaDTO;
+import com.lodong.spring.supermandiary.jwt.JwtTokenProvider;
+import com.lodong.spring.supermandiary.responseentity.StatusEnum;
+import com.lodong.spring.supermandiary.service.AdminService;
 import com.lodong.spring.supermandiary.service.ApartmentService;
+import com.lodong.spring.supermandiary.service.MyInfoService;
 import com.lodong.spring.supermandiary.service.address.AddressService;
 import com.lodong.spring.supermandiary.service.address.ConstructorAddressService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.lodong.spring.supermandiary.util.MakeResponseEntity.getResponseMessage;
+
 @Slf4j
 @RestController
 @RequestMapping("rest/v1/admin/construct")
 public class AdminController {
     private final AddressService addressService;
+    private final AdminService adminService;
     private final ConstructorAddressService constructorAddressService;
-
+    private final JwtTokenProvider jwtTokenProvider;
     private final ApartmentService apartmentService;
+    private final MyInfoService myInfoService;
 
-    public AdminController(AddressService addressService, ConstructorAddressService constructorAddressService, ApartmentService apartmentService) {
+    public AdminController(AddressService addressService, AdminService adminService, ConstructorAddressService constructorAddressService, JwtTokenProvider jwtTokenProvider, ApartmentService apartmentService, MyInfoService myInfoService) {
         this.addressService = addressService;
+        this.adminService = adminService;
         this.constructorAddressService = constructorAddressService;
+        this.jwtTokenProvider = jwtTokenProvider;
         this.apartmentService = apartmentService;
+        this.myInfoService = myInfoService;
     }
 
+    //모든 시군구 지역 요청
     @GetMapping("/get/all-area")
     public List<SiggAreas> getAllArea() {
         log.info("get/all-area");
@@ -37,18 +51,45 @@ public class AdminController {
         return siggAreas;
     }
 
+    //작업 가능 지역 요청
     @GetMapping("/get/work-area")
-    public List<ConstructorWorkArea> getArea(String constructorId) {
+    public ResponseEntity<?> getArea(@RequestHeader(name = "Authorization") String token) {
         log.info("get/work-area");
+        String constructorId;
+        try {
+            constructorId = getConstructorId(token);
+        } catch (NullPointerException e) {
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = e.getMessage();
+            return getResponseMessage(statusEnum, message);
+        }
+
         List<ConstructorWorkArea> constructorWorkAreas = constructorAddressService.getWorkAreas(constructorId);
-        return constructorWorkAreas;
+        List<SiggAreas> siggAreas = new ArrayList<>();
+        for (ConstructorWorkArea constructorWorkArea : constructorWorkAreas) {
+            siggAreas.add(constructorWorkArea.getSiggAreas());
+        }
+
+        StatusEnum statusEnum = StatusEnum.OK;
+        String message = "success";
+
+        return getResponseMessage(statusEnum, message, siggAreas);
     }
 
     @PostMapping("/add/work-area")
-    public ResponseEntity<?> addWorkArea(@RequestParam String constructorId, @RequestBody List<ConstructorWorkAreaDTO> constructorWorkAreaDTOS) {
+    public ResponseEntity<?> addWorkArea(@RequestHeader(name = "Authorization") String token, @RequestBody List<ConstructorWorkAreaDTO> constructorWorkAreaDTOS) {
         log.info("/add/work-area");
-        List<ConstructorWorkArea> constructorWorkAreas = new ArrayList<>();
+        String constructorId;
+        try {
+            constructorId = getConstructorId(token);
+        } catch (NullPointerException e) {
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = e.getMessage();
+            return getResponseMessage(statusEnum, message);
+        }
 
+        List<ConstructorWorkArea> constructorWorkAreas = new ArrayList<>();
+        System.out.println("constructorId :" + constructorId);
         Constructor constructor = Constructor.builder()
                 .id(constructorId)
                 .build();
@@ -68,17 +109,37 @@ public class AdminController {
             System.out.println(constructorWorkArea.toString());
             constructorWorkAreas.add(constructorWorkArea);
         }
-
-        constructorAddressService.addWorkAreas(constructorWorkAreas);
-
-        return ResponseEntity.ok().build();
+        try {
+            constructorAddressService.addWorkAreas(constructorWorkAreas);
+            StatusEnum statusEnum = StatusEnum.OK;
+            String message = "success";
+            return getResponseMessage(statusEnum, message);
+        } catch (DataIntegrityViolationException e) {
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = "해당 지역은 이미 등록되어있습니다.";
+            return getResponseMessage(statusEnum, message);
+        }
     }
 
     @GetMapping("/get/work-apartment")
-    public List<Apartment> getArea(int siggCode) {
+    public ResponseEntity<?> getArea(int siggCode) {
         log.info("get/work-apartment");
-        List<Apartment> apartmentList = apartmentService.getApartmentBySigg(siggCode);
-        return apartmentList;
+        try {
+            List<Apartment> apartmentList = apartmentService.getApartmentBySigg(siggCode);
+            StatusEnum statusEnum = StatusEnum.OK;
+            String message = "시군구 코드를 이용해 아파트 목록 받아오기 성공";
+            return getResponseMessage(statusEnum, message, apartmentList);
+        } catch (NullPointerException e) {
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = e.getMessage();
+            return getResponseMessage(statusEnum, message);
+        }
+    }
+
+    private String getConstructorId(String token) throws NullPointerException {
+        String userUuid = jwtTokenProvider.getUserUuid(token.substring(7));
+        AffiliatedInfo affiliatedInfo = myInfoService.getAffiliatedInfo(userUuid);
+        return affiliatedInfo.getConstructor().getId();
     }
 
 }

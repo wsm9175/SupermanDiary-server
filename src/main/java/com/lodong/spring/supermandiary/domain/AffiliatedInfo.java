@@ -1,5 +1,6 @@
 package com.lodong.spring.supermandiary.domain;
 
+import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import lombok.*;
 
 import javax.persistence.*;
@@ -28,6 +29,4 @@ public class AffiliatedInfo {
     public void prePersist() {
 
     }
-
-
 }

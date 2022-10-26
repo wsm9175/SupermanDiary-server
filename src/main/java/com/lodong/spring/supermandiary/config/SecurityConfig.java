@@ -27,11 +27,12 @@ public class SecurityConfig {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)//JWT를 사용하기 때문에 세션을 사용하지 않는다는 설정이다.
                 .and()
                 .authorizeRequests()
+                /*.antMatchers("/rest/v1/**").permitAll()*/
                 .antMatchers("/rest/v1/auth/**").permitAll()
                 .antMatchers("rest/v1/admin/**").hasRole("ADMIN")
                 .antMatchers("/rest/v1/**").hasRole("USER") //USER 권한이 있어야 요청할 수 있다는 설정이다.
                 .antMatchers("/rest/v1/**").hasRole("ADMIN") //ADMIN 권한이 있어야 요청할 수 있다는 설정이다.
-                .anyRequest().authenticated() //이 밖에 모든 요청에 대해서 인증을 필요로 한다는 설정이다.
+                .anyRequest().authenticated()//이 밖에 모든 요청에 대해서 인증을 필요로 한다는 설정이다.
                 .and()
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
         //JWT 인증을 위하여 직접 구현한 필터를 UsernamePasswordAuthenticationFilter 전에 실행하겠다는 설정이다.

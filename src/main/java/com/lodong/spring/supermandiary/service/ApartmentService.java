@@ -15,8 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ApartmentService {
     private final ApartmentRepository apartmentRepository;
-
     public List<Apartment> getApartmentBySigg(int siggCode){
-        return apartmentRepository.findBySiggCode(siggCode).orElseThrow(()-> new NullPointerException());
+        return apartmentRepository.findBySiggCode(siggCode).orElseThrow(()-> new NullPointerException("해당 시군구 코드에 속한 아파트가 존재하지 않습니다."));
     }
 }

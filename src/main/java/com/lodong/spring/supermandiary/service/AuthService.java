@@ -1,6 +1,8 @@
 package com.lodong.spring.supermandiary.service;
 
 import com.lodong.spring.supermandiary.domain.*;
+import com.lodong.spring.supermandiary.domain.constructor.Constructor;
+import com.lodong.spring.supermandiary.domain.constructor.ConstructorTechDetail;
 import com.lodong.spring.supermandiary.domain.file.FileList;
 import com.lodong.spring.supermandiary.dto.address.AddressDTO;
 import com.lodong.spring.supermandiary.dto.jwt.TokenRequestDTO;
@@ -19,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.xml.bind.ValidationException;
-import java.io.File;
 import java.util.List;
 
 @Slf4j

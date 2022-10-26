@@ -1,26 +1,23 @@
 package com.lodong.spring.supermandiary.controller.constructor;
 
 import com.lodong.spring.supermandiary.domain.*;
+import com.lodong.spring.supermandiary.domain.constructor.Constructor;
+import com.lodong.spring.supermandiary.domain.constructor.ConstructorTechDetail;
 import com.lodong.spring.supermandiary.domain.file.FileList;
 import com.lodong.spring.supermandiary.dto.*;
 import com.lodong.spring.supermandiary.dto.address.AddressDTO;
 import com.lodong.spring.supermandiary.dto.auth.ConstructorIdDTO;
 import com.lodong.spring.supermandiary.dto.jwt.TokenRequestDTO;
 import com.lodong.spring.supermandiary.jwt.TokenInfo;
-import com.lodong.spring.supermandiary.responseentity.Message;
 import com.lodong.spring.supermandiary.responseentity.StatusEnum;
 import com.lodong.spring.supermandiary.service.*;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.xml.bind.ValidationException;
-import java.nio.charset.Charset;
 import java.util.*;
 
 import static com.lodong.spring.supermandiary.util.MakeResponseEntity.getResponseMessage;
@@ -180,9 +177,7 @@ public class AuthController {
                 .build();
 
         try {
-
             authService.registerConstructor(userConstructorEncode, constructor, fileList, file, addressDTO, constructorTechDetailList, affiliatedInfo);
-
         } catch (IllegalStateException illegalStateException) {
             StatusEnum status = StatusEnum.BAD_REQUEST;
             String message = illegalStateException.getMessage();
