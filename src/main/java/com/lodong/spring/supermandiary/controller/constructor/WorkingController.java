@@ -1,11 +1,14 @@
 package com.lodong.spring.supermandiary.controller.constructor;
 
 import com.lodong.spring.supermandiary.domain.AffiliatedInfo;
+import com.lodong.spring.supermandiary.domain.Working;
 import com.lodong.spring.supermandiary.domain.address.SiggAreas;
 import com.lodong.spring.supermandiary.domain.constructor.ConstructorWorkArea;
+import com.lodong.spring.supermandiary.dto.WorkApartmentDto;
 import com.lodong.spring.supermandiary.jwt.JwtTokenProvider;
 import com.lodong.spring.supermandiary.responseentity.StatusEnum;
 import com.lodong.spring.supermandiary.service.MyInfoService;
+import com.lodong.spring.supermandiary.service.WorkingService;
 import com.lodong.spring.supermandiary.service.address.ConstructorAddressService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static com.lodong.spring.supermandiary.util.MakeResponseEntity.getResponseMessage;
@@ -26,18 +30,19 @@ import static com.lodong.spring.supermandiary.util.MakeResponseEntity.getRespons
 public class WorkingController {
     private final MyInfoService myInfoService;
     private final ConstructorAddressService constructorAddressService;
+    private final WorkingService workingService;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public WorkingController(MyInfoService myInfoService, ConstructorAddressService constructorAddressService, JwtTokenProvider jwtTokenProvider) {
+    public WorkingController(MyInfoService myInfoService, ConstructorAddressService constructorAddressService, WorkingService workingService, JwtTokenProvider jwtTokenProvider) {
         this.myInfoService = myInfoService;
         this.constructorAddressService = constructorAddressService;
+        this.workingService = workingService;
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
 
     @GetMapping("/work-area")
     private ResponseEntity<?> getWorkArea(@RequestHeader(name = "Authorization") String token){
-        log.info("get/work-area");
         String constructorId;
         try {
             constructorId = getConstructorId(token);
@@ -54,6 +59,23 @@ public class WorkingController {
             String message = e.getMessage();
             return getResponseMessage(statusEnum, message);
         }
+    }
+
+    @GetMapping("/work-list")
+    private ResponseEntity<?> getWorkList(@RequestHeader(name = "Authorization") String token, int siggCode){
+        String constructorId;
+        try {
+            constructorId = getConstructorId(token);
+        } catch (NullPointerException e) {
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = "속한 시공사가 없습니다.";
+            return getResponseMessage(statusEnum, message);
+        }
+
+        HashMap<String, List<WorkApartmentDto>> workList = workingService.getWorkList(constructorId, siggCode);
+        StatusEnum statusEnum = StatusEnum.OK;
+        String message = siggCode+"에 해당하는 작업 리스트";
+        return getResponseMessage(statusEnum, message, workList);
     }
 
     private String getConstructorId(String token) throws NullPointerException {
