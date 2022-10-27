@@ -44,8 +44,6 @@ public class UserConstructor implements UserDetails {
     private boolean agreeTerm;
     @Column(nullable = false)
     private String sex;
-    @Column(nullable = false)
-    private String wireService;
     @Column
     private String refreshToken;
     @ElementCollection(fetch = FetchType.EAGER)

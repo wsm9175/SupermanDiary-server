@@ -1,20 +1,20 @@
 package com.lodong.spring.supermandiary.service;
 
+import com.lodong.spring.supermandiary.domain.Estimate;
+import com.lodong.spring.supermandiary.domain.EstimateDetail;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import com.lodong.spring.supermandiary.domain.constructor.ConstructorProduct;
 import com.lodong.spring.supermandiary.domain.create.RequestOrder;
 import com.lodong.spring.supermandiary.domain.create.RequestOrderProduct;
-import com.lodong.spring.supermandiary.dto.create.ChoiceProductDto;
-import com.lodong.spring.supermandiary.dto.create.ConstructorProductDto;
-import com.lodong.spring.supermandiary.dto.create.RequestOrderDto;
-import com.lodong.spring.supermandiary.repo.ConstructorProductRepository;
-import com.lodong.spring.supermandiary.repo.RequestOrderProductRepository;
-import com.lodong.spring.supermandiary.repo.RequestOrderRepository;
+import com.lodong.spring.supermandiary.dto.create.*;
+import com.lodong.spring.supermandiary.repo.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +22,8 @@ public class CreateService {
     private final RequestOrderRepository requestOrderRepository;
     private final RequestOrderProductRepository requestOrderProductRepository;
     private final ConstructorProductRepository constructorProductRepository;
-
+    private final EstimateRepository estimateRepository;
+    private final EstimateDetailRepository estimateDetailRepository;
     public List<RequestOrderDto> getRequestOrderList(String token) throws NullPointerException {
         Constructor constructor = Constructor.builder()
                 .id(token)
@@ -58,7 +59,8 @@ public class CreateService {
                 requestOrderDto.setApartmentType(requestOrder.getApartment_type());
             } else {
                 requestOrderDto.setOtherHomeName(requestOrder.getOtherHome().getName());
-                requestOrderDto.setOtherHomeAddressDetail(requestOrder.getOtherHomeAddressDetail());
+                requestOrderDto.setOtherHomeDong(requestOrder.getOtherHomeDong());
+                requestOrderDto.setOtherHomeHosu(requestOrder.getOtherHomeHosu());
             }
             requestOrderDtoList.add(requestOrderDto);
         }
@@ -84,6 +86,51 @@ public class CreateService {
         }
 
         return constructorProductDtos;
+    }
+
+    @Transactional
+    public void sendEstimateMember(String constructorId, SendEstimateDto sendEstimateDto){
+        Constructor constructor = Constructor.builder()
+                .id(constructorId)
+                .build();
+        ConstructorProduct constructorProduct = ConstructorProduct.builder()
+                .id(sendEstimateDto.getProductId())
+                .build();
+
+        if(sendEstimateDto.getRequestOrderId() != null){ //회원 견적서
+            RequestOrder requestOrder = RequestOrder.builder()
+                    .id(sendEstimateDto.getRequestOrderId())
+                    .build();
+            List<EstimateDetail> estimateDetails = new ArrayList<>();
+
+            Estimate estimate = Estimate.builder()
+                    .id(UUID.randomUUID().toString())
+                    .constructorProduct(constructorProduct)
+                    .constructor(constructor)
+                    .requestOrder(requestOrder)
+                    .note(sendEstimateDto.getNote())
+                    .discount(sendEstimateDto.getDiscount())
+                    .discountCri(sendEstimateDto.getDiscountCri())
+                    .build();
+
+            for(EstimateDetailDto estimateDetailDto:sendEstimateDto.getEstimateDetails()){
+                EstimateDetail estimateDetail = EstimateDetail.builder()
+                        .id(UUID.randomUUID().toString())
+                        .estimate(estimate)
+                        .productName(estimateDetailDto.getProductName())
+                        .count(estimateDetailDto.getCount())
+                        .price(estimateDetailDto.getPrice())
+                        .note(estimateDetailDto.getNote())
+                        .build();
+                estimateDetails.add(estimateDetail);
+            }
+
+            estimateRepository.save(estimate);
+            estimateDetailRepository.saveAll(estimateDetails);
+
+        }else{
+            throw new NullPointerException("잘못된 값입니다.");
+        }
 
     }
 

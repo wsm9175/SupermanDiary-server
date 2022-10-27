@@ -17,7 +17,8 @@ public class RequestOrderDto {
     private String apartmentType;
 
     private String otherHomeName;
-    private String otherHomeAddressDetail;
+    private String otherHomeDong;
+    private String otherHomeHosu;
 
     private List<ChoiceProductDto> choiceProducts;
 }

@@ -43,6 +43,7 @@ public class RequestOrder {
     @JoinColumn(name = "other_home_id")
     private OtherHome otherHome;
     @Column(nullable = true)
-    private String otherHomeAddressDetail;
-
+    private String otherHomeDong;
+    @Column(nullable = true)
+    private String otherHomeHosu;
 }

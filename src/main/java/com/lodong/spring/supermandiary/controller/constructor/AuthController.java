@@ -63,7 +63,6 @@ public class AuthController {
                 .career(user.getCareer())
                 .roles(Collections.singletonList("USER"))
                 .sex(user.getSex())
-                .wireService(user.getWireService())
                 .build();
         List<UserConstructorTech> userConstructorTechList = new ArrayList<>();
 
@@ -131,7 +130,6 @@ public class AuthController {
                 .ageGroup(user.getAgeGroup())
                 .career(user.getCareer())
                 .sex(user.getSex())
-                .wireService(user.getWireService())
                 .roles(Collections.singletonList("ADMIN"))
                 .build();
 
