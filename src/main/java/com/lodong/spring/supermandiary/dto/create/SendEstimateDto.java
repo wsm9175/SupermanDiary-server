@@ -18,6 +18,9 @@ public class SendEstimateDto {
     private String otherHomeId;
     private String otherHomeDong;
     private String otherHomeHosu;
+    private String otherHomeType;
+    private String name;
+    private String phoneNumber;
 
     //공통
     private String productId;

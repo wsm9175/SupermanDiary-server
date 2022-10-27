@@ -11,14 +11,9 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@Slf4j
-@Entity
-@ToString
-@Builder
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
+@Slf4j @Entity @ToString
+@Builder @Getter @Setter
+@AllArgsConstructor @NoArgsConstructor
 
 public class Estimate {
     @Id
@@ -49,11 +44,17 @@ public class Estimate {
     @Column(nullable = true)
     private String otherHomeHosu;
     @Column(nullable = true)
+    private String otherHomeType;
+    @Column(nullable = true)
     private String note;
     @Column(nullable = true)
     private int discount;
     @Column(nullable = true)
     private String discountCri;
+    @Column(nullable = true)
+    private String name;
+    @Column(nullable = true)
+    private String phoneNumber;
 
     @JsonIgnore
     @OneToMany(mappedBy = "estimate", fetch = FetchType.EAGER, cascade = CascadeType.ALL)

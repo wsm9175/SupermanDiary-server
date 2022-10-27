@@ -8,8 +8,6 @@ import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
-import java.util.List;
-
 @Slf4j
 @Entity
 @ToString
@@ -46,4 +44,7 @@ public class RequestOrder {
     private String otherHomeDong;
     @Column(nullable = true)
     private String otherHomeHosu;
+    @Column(nullable = true)
+    private boolean isCompletion;
+
 }

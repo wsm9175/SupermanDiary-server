@@ -19,6 +19,7 @@ public class RequestOrderDto {
     private String otherHomeName;
     private String otherHomeDong;
     private String otherHomeHosu;
+    private boolean isCompletion;
 
     private List<ChoiceProductDto> choiceProducts;
 }
