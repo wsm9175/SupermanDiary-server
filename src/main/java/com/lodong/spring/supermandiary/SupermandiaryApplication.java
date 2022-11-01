@@ -10,10 +10,6 @@ import java.util.TimeZone;
 //@EnableScheduling
 @SpringBootApplication
 public class SupermandiaryApplication {
-	@PostConstruct
-	void started() {
-		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
-	}
 	public static void main(String[] args) {
 		SpringApplication.run(SupermandiaryApplication.class, args);
 	}

@@ -95,7 +95,7 @@ public class CreateController {
     @PostMapping("/send/estimate/non-member")
     public ResponseEntity<?> sendEstimateNoneMember(@RequestHeader(name = "Authorization") String token, @RequestBody SendEstimateDto sendEstimate){
         String constructorId = getConstructorId(token);
-
+        log.info("들어온 정보 : " + sendEstimate.toString());
         try {
             createService.sendEstimateNoneMember(constructorId,sendEstimate);
             StatusEnum statusEnum = StatusEnum.OK;

@@ -1,7 +1,6 @@
 package com.lodong.spring.supermandiary.controller.constructor;
 
 import com.lodong.spring.supermandiary.domain.AffiliatedInfo;
-import com.lodong.spring.supermandiary.domain.Working;
 import com.lodong.spring.supermandiary.domain.address.SiggAreas;
 import com.lodong.spring.supermandiary.domain.constructor.ConstructorWorkArea;
 import com.lodong.spring.supermandiary.dto.WorkApartmentDto;
@@ -42,7 +41,7 @@ public class WorkingController {
 
 
     @GetMapping("/work-area")
-    private ResponseEntity<?> getWorkArea(@RequestHeader(name = "Authorization") String token){
+    private ResponseEntity<?> getWorkArea(@RequestHeader(name = "Authorization") String token) {
         String constructorId;
         try {
             constructorId = getConstructorId(token);
@@ -62,7 +61,7 @@ public class WorkingController {
     }
 
     @GetMapping("/work-list")
-    private ResponseEntity<?> getWorkList(@RequestHeader(name = "Authorization") String token, int siggCode){
+    private ResponseEntity<?> getWorkList(@RequestHeader(name = "Authorization") String token, int siggCode) {
         String constructorId;
         try {
             constructorId = getConstructorId(token);
@@ -74,8 +73,30 @@ public class WorkingController {
 
         HashMap<String, List<WorkApartmentDto>> workList = workingService.getWorkList(constructorId, siggCode);
         StatusEnum statusEnum = StatusEnum.OK;
-        String message = siggCode+"에 해당하는 작업 리스트";
+        String message = siggCode + "에 해당하는 작업 리스트";
         return getResponseMessage(statusEnum, message, workList);
+    }
+
+    @GetMapping("/find-work")
+    private ResponseEntity<?> findWorkByPhoneNumber(@RequestHeader(name = "Authorization") String token, String phoneNumber) {
+        String constructorId;
+        try {
+            constructorId = getConstructorId(token);
+        } catch (NullPointerException e) {
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = "속한 시공사가 없습니다.";
+            return getResponseMessage(statusEnum, message);
+        }
+        List<WorkApartmentDto> workApartmentDtos = workingService.getWorkByPhoneNumber(constructorId, phoneNumber);
+
+        StatusEnum statusEnum = StatusEnum.OK;
+        if (workApartmentDtos.size() == 0) {
+            String message = phoneNumber + "에 해당하는 작업이 없습니다.";
+            return getResponseMessage(statusEnum, message, null);
+        }
+
+        String message = phoneNumber + "에 해당하는 작업입니다.";
+        return getResponseMessage(statusEnum, message, workApartmentDtos);
     }
 
     private String getConstructorId(String token) throws NullPointerException {
@@ -83,4 +104,5 @@ public class WorkingController {
         AffiliatedInfo affiliatedInfo = myInfoService.getAffiliatedInfo(userUuid);
         return affiliatedInfo.getConstructor().getId();
     }
+
 }
