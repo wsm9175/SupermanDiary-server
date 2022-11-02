@@ -6,6 +6,7 @@ import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import com.lodong.spring.supermandiary.domain.constructor.ConstructorWorkArea;
 import com.lodong.spring.supermandiary.domain.address.SiggAreas;
 import com.lodong.spring.supermandiary.dto.ConstructorWorkAreaDTO;
+import com.lodong.spring.supermandiary.dto.admin.ConstructorProductWorkDto;
 import com.lodong.spring.supermandiary.jwt.JwtTokenProvider;
 import com.lodong.spring.supermandiary.responseentity.StatusEnum;
 import com.lodong.spring.supermandiary.service.AdminService;
@@ -41,6 +42,23 @@ public class AdminController {
         this.jwtTokenProvider = jwtTokenProvider;
         this.apartmentService = apartmentService;
         this.myInfoService = myInfoService;
+    }
+
+    @GetMapping("/get/work-list")
+    public ResponseEntity<?> getWorkList(@RequestHeader(name = "Authorization") String token){
+        String constructorId;
+        try {
+            constructorId = getConstructorId(token);
+        } catch (NullPointerException e) {
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = e.getMessage();
+            return getResponseMessage(statusEnum, message);
+        }
+
+        List<ConstructorProductWorkDto> constructorProductWorkDtos = adminService.getWorkList(constructorId);
+        StatusEnum statusEnum = StatusEnum.OK;
+        String message = "작업 목록";
+        return getResponseMessage(statusEnum, message, constructorProductWorkDtos);
     }
 
     //모든 시군구 지역 요청
@@ -135,6 +153,7 @@ public class AdminController {
             return getResponseMessage(statusEnum, message);
         }
     }
+
 
     private String getConstructorId(String token) throws NullPointerException {
         String userUuid = jwtTokenProvider.getUserUuid(token.substring(7));

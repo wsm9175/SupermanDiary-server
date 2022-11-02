@@ -9,4 +9,5 @@ import java.util.Optional;
 
 public interface ConstructorProductRepository extends JpaRepository<ConstructorProduct, String> {
     public Optional<List<ConstructorProduct>> findConstructorProductByConstructor(Constructor constructor);
+    public Optional<List<ConstructorProduct>> findConstructorProductByConstructorId(String constructorId);
 }
