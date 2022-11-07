@@ -8,6 +8,9 @@ import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Slf4j
 @Entity
 @ToString
@@ -45,6 +48,15 @@ public class RequestOrder {
     @Column(nullable = true)
     private String otherHomeHosu;
     @Column(nullable = true)
-    private boolean isCompletion;
+    private String status;
 
+    /////////////////////////////
+    @Column(nullable = false)
+    private LocalDate liveInDate;
+    @Column(nullable = false)
+    private boolean isConfirmationLiveIn;
+    @Column(nullable = false)
+    private LocalDate requestConstructDate;
+    @Column(nullable = false)
+    private boolean isConfirmationConstruct;
 }

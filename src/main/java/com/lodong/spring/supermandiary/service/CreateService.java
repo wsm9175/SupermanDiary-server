@@ -1,6 +1,7 @@
 package com.lodong.spring.supermandiary.service;
 
 import com.lodong.spring.supermandiary.domain.*;
+import com.lodong.spring.supermandiary.domain.admin.ConstructorProductWorkList;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import com.lodong.spring.supermandiary.domain.constructor.ConstructorProduct;
 import com.lodong.spring.supermandiary.domain.create.RequestOrder;
@@ -53,7 +54,7 @@ public class CreateService {
             requestOrderDto.setPhoneNumber(requestOrder.getCustomer().getPhoneNumber());
             requestOrderDto.setNote(requestOrder.getNote());
             requestOrderDto.setChoiceProducts(choiceProducts);
-            requestOrderDto.setCompletion(requestOrder.isCompletion());
+            requestOrderDto.setStatus(requestOrder.getStatus());
             if (requestOrder.getApartment() != null) {
                 requestOrderDto.setApartmentName(requestOrder.getApartment().getName());
                 requestOrderDto.setDong(requestOrder.getDong());
@@ -64,6 +65,10 @@ public class CreateService {
                 requestOrderDto.setOtherHomeDong(requestOrder.getOtherHomeDong());
                 requestOrderDto.setOtherHomeHosu(requestOrder.getOtherHomeHosu());
             }
+            requestOrderDto.setLiveInDate(requestOrder.getLiveInDate());
+            requestOrderDto.setRequestConstructorDate(requestOrder.getRequestConstructDate());
+            requestOrderDto.setConfirmationLiveIn(requestOrder.isConfirmationLiveIn());
+            requestOrderDto.setConfirmationConstructorDate(requestOrder.isConfirmationConstruct());
             requestOrderDtoList.add(requestOrderDto);
         }
         return requestOrderDtoList;
@@ -111,8 +116,9 @@ public class CreateService {
                     .constructor(constructor)
                     .requestOrder(requestOrder)
                     .note(sendEstimateDto.getNote())
-                    .discount(sendEstimateDto.getDiscount())
-                    .discountCri(sendEstimateDto.getDiscountCri())
+                    .remark(sendEstimateDto.getRemark())
+                    .price(sendEstimateDto.getPrice())
+                    .isVat(sendEstimateDto.isVat())
                     .build();
 
             for (EstimateDetailDto estimateDetailDto : sendEstimateDto.getEstimateDetails()) {
@@ -122,13 +128,23 @@ public class CreateService {
                         .productName(estimateDetailDto.getProductName())
                         .count(estimateDetailDto.getCount())
                         .price(estimateDetailDto.getPrice())
-                        .note(estimateDetailDto.getNote())
                         .build();
                 estimateDetails.add(estimateDetail);
             }
+            List<Discount> discountList = new ArrayList<>();
+            for (DiscountDto discountDto : sendEstimateDto.getDiscounts()) {
+                Discount discount = Discount.builder()
+                        .id(UUID.randomUUID().toString())
+                        .estimate(estimate)
+                        .discountContent(discountDto.getDiscountCri())
+                        .discount(discountDto.getDiscount())
+                        .build();
+                discountList.add(discount);
+            }
 
+            estimate.setEstimateDetails(estimateDetails);
+            estimate.setDiscountList(discountList);
             estimateRepository.save(estimate);
-            estimateDetailRepository.saveAll(estimateDetails);
         } else {
             throw new NullPointerException("잘못된 값입니다.");
         }
@@ -140,9 +156,9 @@ public class CreateService {
         Constructor constructor = Constructor.builder()
                 .id(constructorId)
                 .build();
-        ConstructorProduct constructorProduct = ConstructorProduct.builder()
-                .id(sendEstimateDto.getProductId())
-                .build();
+        ConstructorProduct constructorProduct = constructorProductRepository
+                .findById(sendEstimateDto.getProductId())
+                .orElseThrow(()->new NullPointerException("없는 상품입니다."));
 
         Estimate estimate = null;
 
@@ -166,8 +182,9 @@ public class CreateService {
                         .name(sendEstimateDto.getName())
                         .phoneNumber(sendEstimateDto.getPhoneNumber())
                         .note(sendEstimateDto.getNote())
-                        .discount(sendEstimateDto.getDiscount())
-                        .discountCri(sendEstimateDto.getDiscountCri())
+                        .remark(sendEstimateDto.getRemark())
+                        .price(sendEstimateDto.getPrice())
+                        .isVat(sendEstimateDto.isVat())
                         .build();
 
                 working = Working.builder()
@@ -201,8 +218,8 @@ public class CreateService {
                         .name(sendEstimateDto.getName())
                         .phoneNumber(sendEstimateDto.getPhoneNumber())
                         .note(sendEstimateDto.getNote())
-                        .discount(sendEstimateDto.getDiscount())
-                        .discountCri(sendEstimateDto.getDiscountCri())
+                        .remark(sendEstimateDto.getRemark())
+                        .price(sendEstimateDto.getPrice())
                         .build();
 
                 working = Working.builder()
@@ -232,20 +249,46 @@ public class CreateService {
                         .productName(estimateDetailDto.getProductName())
                         .count(estimateDetailDto.getCount())
                         .price(estimateDetailDto.getPrice())
-                        .note(estimateDetailDto.getNote())
                         .build();
                 estimateDetails.add(estimateDetail);
             }
 
+            List<Discount> discountList = new ArrayList<>();
+            for (DiscountDto discountDto : sendEstimateDto.getDiscounts()) {
+                Discount discount = Discount.builder()
+                        .id(UUID.randomUUID().toString())
+                        .estimate(estimate)
+                        .discountContent(discountDto.getDiscountCri())
+                        .discount(discountDto.getDiscount())
+                        .build();
+                discountList.add(discount);
+            }
+
+            estimate.setEstimateDetails(estimateDetails);
+            estimate.setDiscountList(discountList);
+
             estimateRepository.save(estimate);
-            estimateDetailRepository.saveAll(estimateDetails);
+
+            List<ConstructorProductWorkList> constructorProductWorkLists = estimate.getConstructorProduct()
+                    .getConstructorProductWorkLists();
+
+            System.out.println("size + " + constructorProductWorkLists.size());
+            List<WorkDetail> workDetails = new ArrayList<>();
+
+            Working finalWorking = working;
+            constructorProductWorkLists.forEach(constructorProductWorkList -> {
+                WorkDetail workDetail = WorkDetail.builder()
+                        .id(UUID.randomUUID().toString())
+                        .working(finalWorking)
+                        .constructorProductWorkList(constructorProductWorkList)
+                        .isComplete(false)
+                        .build();
+                workDetails.add(workDetail);
+            });
+            working.setWorkDetails(workDetails);
             workingRepository.save(working);
-
-
         } else {
             throw new NullPointerException("잘못된 값입니다.");
         }
-
     }
-
 }

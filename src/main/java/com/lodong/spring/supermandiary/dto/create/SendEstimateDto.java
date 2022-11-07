@@ -1,6 +1,5 @@
 package com.lodong.spring.supermandiary.dto.create;
 
-import com.lodong.spring.supermandiary.domain.EstimateDetail;
 import lombok.Data;
 
 import java.util.List;
@@ -15,6 +14,7 @@ public class SendEstimateDto {
     private String apartmentDong;
     private String apartmentHosu;
     private String apartmentType;
+
     private String otherHomeId;
     private String otherHomeDong;
     private String otherHomeHosu;
@@ -25,7 +25,9 @@ public class SendEstimateDto {
     //공통
     private String productId;
     private String note;
-    private int discount;
-    private String discountCri;
+    private boolean isVat;
+    private String remark;
+    private int price;
     private List<EstimateDetailDto> estimateDetails;
+    private List<DiscountDto> discounts;
 }

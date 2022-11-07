@@ -4,7 +4,6 @@ import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
-import java.util.List;
 
 @Slf4j
 @Entity
@@ -14,18 +13,16 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-
-public class EstimateDetail {
+public class Discount {
     @Id
     private String id;
-    @ManyToOne(fetch = FetchType.EAGER)
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "estimate_id")
     private Estimate estimate;
-    @Column(nullable = false)
-    private String productName;
-    @Column(nullable = false)
-    private int count;
-    @Column(nullable = false)
-    private int price;
 
+    @Column(nullable = false)
+    private String discountContent;
+    @Column(nullable = false)
+    private int discount;
 }

@@ -6,6 +6,7 @@ import com.lodong.spring.supermandiary.domain.constructor.ConstructorWorkArea;
 import com.lodong.spring.supermandiary.dto.working.UserConstructorDto;
 import com.lodong.spring.supermandiary.dto.working.WorkApartmentDto;
 import com.lodong.spring.supermandiary.dto.working.WorkDetailDto;
+import com.lodong.spring.supermandiary.dto.working.WorkLevelDto;
 import com.lodong.spring.supermandiary.jwt.JwtTokenProvider;
 import com.lodong.spring.supermandiary.responseentity.StatusEnum;
 import com.lodong.spring.supermandiary.service.MyInfoService;
@@ -120,7 +121,7 @@ public class WorkingController {
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = e.getMessage();
             return getResponseMessage(statusEnum, message);
-        } catch (Exception exception){
+        } catch (Exception exception) {
             exception.printStackTrace();
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = "알수 없는 에러가 발생했습니다. " + exception.getMessage();
@@ -128,8 +129,8 @@ public class WorkingController {
         }
     }
 
-    @GetMapping("/member-list")
-    private ResponseEntity<?> getConstructorMember(@RequestHeader(name = "Authorization") String token){
+    @GetMapping("/work-level")
+    private ResponseEntity<?> getWorkLevelByWorkId(@RequestHeader(name = "Authorization") String token, String workId) {
         String constructorId;
         try {
             constructorId = getConstructorId(token);
@@ -140,12 +141,37 @@ public class WorkingController {
             return getResponseMessage(statusEnum, message);
         }
 
-        try{
+        try {
+            List<WorkLevelDto> workLevelDtos = workingService.getWorkLevelList(constructorId, workId);
+            StatusEnum statusEnum = StatusEnum.OK;
+            String message = "작업 진행";
+            return getResponseMessage(statusEnum, message, workLevelDtos);
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = "해당 작업은 작업 레벨이 존재하지 않습니다." + e.getMessage();
+            return getResponseMessage(statusEnum, message);
+        }
+    }
+
+    @GetMapping("/member-list")
+    private ResponseEntity<?> getConstructorMember(@RequestHeader(name = "Authorization") String token) {
+        String constructorId;
+        try {
+            constructorId = getConstructorId(token);
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = "속한 시공사가 없습니다.";
+            return getResponseMessage(statusEnum, message);
+        }
+
+        try {
             List<UserConstructorDto> userConstructorDtoList = workingService.getConstructorMember(constructorId);
             StatusEnum statusEnum = StatusEnum.OK;
             String message = "시공사 멤버 목록";
             return getResponseMessage(statusEnum, message, userConstructorDtoList);
-        }catch (NullPointerException e){
+        } catch (NullPointerException e) {
             e.printStackTrace();
             StatusEnum statusEnum = StatusEnum.NOT_FOUND;
             String message = "해당 시공사에 작업 가능한 사람이 없습니다.";
@@ -153,23 +179,7 @@ public class WorkingController {
         }
     }
 
-    @PostMapping("/allocation/mem")
 
-    /*@PostMapping("/allocation-member")
-    private ResponseEntity<?> postAllocationMember(@RequestHeader(name = "Authorization") String token){
-        String constructorId;
-        try {
-            constructorId = getConstructorId(token);
-        } catch (NullPointerException e) {
-            e.printStackTrace();
-            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
-            String message = "속한 시공사가 없습니다.";
-            return getResponseMessage(statusEnum, message);
-        }
-
-
-    }
-*/
     private String getConstructorId(String token) throws NullPointerException {
         String userUuid = jwtTokenProvider.getUserUuid(token.substring(7));
         AffiliatedInfo affiliatedInfo = myInfoService.getAffiliatedInfo(userUuid);

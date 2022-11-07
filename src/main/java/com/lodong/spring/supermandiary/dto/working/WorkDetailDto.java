@@ -14,7 +14,7 @@ public class WorkDetailDto {
     private String productName;
     private int price;
     private String note;
-    private String manager;
+    private String remark;
 
     private boolean isMember;
 }

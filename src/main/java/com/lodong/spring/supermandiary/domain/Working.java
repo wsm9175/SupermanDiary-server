@@ -1,11 +1,14 @@
 package com.lodong.spring.supermandiary.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import com.lodong.spring.supermandiary.domain.constructor.ConstructorProduct;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j @Entity @ToString
 @Builder @Getter @Setter
@@ -27,10 +30,6 @@ public class Working {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "estimate_id", unique = true, nullable = false)
     private Estimate estimate;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_constructor_id", unique = true, nullable = true)
-    private UserConstructor userConstructor;
 
     @Column(nullable = false)
     private boolean isCompleteConstruct;
@@ -61,4 +60,9 @@ public class Working {
     //비회원
     private String nonMemberName;
     private String nonMemberPhoneNumber;
+
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "working", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<WorkDetail> workDetails = new ArrayList<>();
 }

@@ -7,4 +7,5 @@ public class WorkListDto {
     private String id;
     private int sequence;
     private String workName;
+    private boolean isFileIn;
 }

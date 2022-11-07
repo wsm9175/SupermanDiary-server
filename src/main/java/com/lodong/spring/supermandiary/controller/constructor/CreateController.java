@@ -9,6 +9,7 @@ import com.lodong.spring.supermandiary.responseentity.StatusEnum;
 import com.lodong.spring.supermandiary.service.CreateService;
 import com.lodong.spring.supermandiary.service.MyInfoService;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -76,13 +77,18 @@ public class CreateController {
         String constructorId = getConstructorId(token);
 
         try {
-            createService.sendEstimateMember(constructorId,sendEstimate);
+            createService.sendEstimateMember(constructorId, sendEstimate);
             StatusEnum statusEnum = StatusEnum.OK;
             String message = "회원 견적서 발송 성공";
             return getResponseMessage(statusEnum, message, null);
-        }catch (DataIntegrityViolationException dataIntegrityViolationException){
+        } catch (DataIntegrityViolationException dataIntegrityViolationException) {
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
-            String message = "데이터 베이스 삽입중 오류가 발생했습니다." + dataIntegrityViolationException.getMessage();
+            String message;
+            if (dataIntegrityViolationException.getMessage().contains("ConstraintViolationException")) {
+                message = "해당 전자계약서 요청건은 이미 견적서가 등록돼있습니다.";
+            } else {
+                message = "DB삽입중 오류가 발생했습니다." + dataIntegrityViolationException.getMessage();
+            }
             return getResponseMessage(statusEnum, message);
         } catch (Exception e) {
             e.printStackTrace();
@@ -93,15 +99,15 @@ public class CreateController {
     }
 
     @PostMapping("/send/estimate/non-member")
-    public ResponseEntity<?> sendEstimateNoneMember(@RequestHeader(name = "Authorization") String token, @RequestBody SendEstimateDto sendEstimate){
+    public ResponseEntity<?> sendEstimateNoneMember(@RequestHeader(name = "Authorization") String token, @RequestBody SendEstimateDto sendEstimate) {
         String constructorId = getConstructorId(token);
         log.info("들어온 정보 : " + sendEstimate.toString());
         try {
-            createService.sendEstimateNoneMember(constructorId,sendEstimate);
+            createService.sendEstimateNoneMember(constructorId, sendEstimate);
             StatusEnum statusEnum = StatusEnum.OK;
             String message = "비회원 견적서 발송 성공";
             return getResponseMessage(statusEnum, message, null);
-        }catch (DataIntegrityViolationException dataIntegrityViolationException){
+        } catch (DataIntegrityViolationException dataIntegrityViolationException) {
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = "데이터 베이스 삽입중 오류가 발생했습니다." + dataIntegrityViolationException.getMessage();
             return getResponseMessage(statusEnum, message);

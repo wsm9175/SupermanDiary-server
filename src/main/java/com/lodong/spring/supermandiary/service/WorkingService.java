@@ -1,12 +1,12 @@
 package com.lodong.spring.supermandiary.service;
 
 import com.lodong.spring.supermandiary.domain.AffiliatedInfo;
-import com.lodong.spring.supermandiary.domain.UserConstructor;
 import com.lodong.spring.supermandiary.domain.Working;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import com.lodong.spring.supermandiary.dto.working.UserConstructorDto;
 import com.lodong.spring.supermandiary.dto.working.WorkApartmentDto;
 import com.lodong.spring.supermandiary.dto.working.WorkDetailDto;
+import com.lodong.spring.supermandiary.dto.working.WorkLevelDto;
 import com.lodong.spring.supermandiary.repo.AffiliatedInfoRepository;
 import com.lodong.spring.supermandiary.repo.WorkingRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @RequiredArgsConstructor
@@ -138,18 +137,9 @@ public class WorkingService {
 
         // 상품 이름, 가격, 비고, 담당자
         workDetailDto.setProductName(working.getConstructorProduct().getName());
-        AtomicInteger price = new AtomicInteger();
-        working.getEstimate().getEstimateDetails()
-                .forEach(estimateDetail -> price.addAndGet(estimateDetail.getPrice()));
-        int finalPrice = price.get()-working.getEstimate().getDiscount();
-        workDetailDto.setPrice(Math.max(finalPrice, 0));
+        workDetailDto.setPrice(working.getEstimate().getPrice());
         workDetailDto.setNote(working.getEstimate().getNote());
-
-        //담당자가 지정 or 미지정
-        if (working.getUserConstructor() != null) {
-            workDetailDto.setManager(working.getUserConstructor().getName());
-        }
-        workDetailDto.setManager(null);
+        workDetailDto.setRemark(working.getEstimate().getRemark());
 
         return workDetailDto;
     }
@@ -171,5 +161,37 @@ public class WorkingService {
 
         return userConstructorDtoList;
     }
+
+    public List<WorkLevelDto> getWorkLevelList(String constructorId, String workId){
+        Working working = workingRepository
+                .findByIdAndConstructorId(workId, constructorId)
+                .orElseThrow(()-> new NullPointerException("작업이 존재하지 않습니다."));
+
+        List<WorkLevelDto> workLevelDtos = new ArrayList<>();
+
+        working.getWorkDetails()
+                .forEach(workDetail -> {
+                    WorkLevelDto workLevelDto = new WorkLevelDto();
+                    workLevelDto.setId(workDetail.getId());
+                    workLevelDto.setName(workDetail.getConstructorProductWorkList().getName());
+                    workLevelDto.setNote(workDetail.getNote());
+                    workLevelDto.setActualDate(workDetail.getActualWorkDate());
+                    workLevelDto.setComplete(workDetail.isComplete());
+                    workLevelDto.setSequence(workDetail.getConstructorProductWorkList().getSequence());
+                    if(workDetail.getUserConstructor() != null){
+                        workLevelDto.setManager(workDetail.getUserConstructor().getName());
+                        workLevelDto.setManagerId(workDetail.getUserConstructor().getId());
+                    }
+                    workLevelDto.setFileIn(workDetail.getConstructorProductWorkList().isFileIn());
+                    workLevelDtos.add(workLevelDto);
+                });
+
+        return workLevelDtos;
+
+    }
+
+   /* public List<?> allocateMember(String constructorId, String workId, String memberId){
+
+    }*/
 }
 

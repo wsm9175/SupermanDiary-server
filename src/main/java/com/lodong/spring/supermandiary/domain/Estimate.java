@@ -48,16 +48,22 @@ public class Estimate {
     @Column(nullable = true)
     private String note;
     @Column(nullable = true)
-    private int discount;
-    @Column(nullable = true)
-    private String discountCri;
-    @Column(nullable = true)
     private String name;
     @Column(nullable = true)
     private String phoneNumber;
+    @Column(nullable = true)
+    private String remark;
+    @Column(nullable = false)
+    private int price;
+    @Column(nullable = false)
+    private boolean isVat;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "estimate", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "estimate", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<EstimateDetail> estimateDetails = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "estimate", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Discount> discountList = new ArrayList<>();
 
 }

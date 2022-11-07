@@ -7,5 +7,4 @@ public class EstimateDetailDto {
     private String productName;
     private int count;
     private int price;
-    private String note;
 }
