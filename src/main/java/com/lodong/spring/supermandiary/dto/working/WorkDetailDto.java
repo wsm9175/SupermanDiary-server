@@ -1,4 +1,4 @@
-package com.lodong.spring.supermandiary.dto;
+package com.lodong.spring.supermandiary.dto.working;
 
 import lombok.Data;
 

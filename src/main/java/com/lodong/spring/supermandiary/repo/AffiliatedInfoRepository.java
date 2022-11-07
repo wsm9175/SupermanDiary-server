@@ -5,8 +5,10 @@ import com.lodong.spring.supermandiary.domain.UserConstructor;
 import com.lodong.spring.supermandiary.domain.UserConstructorTech;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface AffiliatedInfoRepository extends JpaRepository<AffiliatedInfo, Integer> {
     Optional<AffiliatedInfo> findByUserConstructor(UserConstructor userConstructor);
+    Optional<List<AffiliatedInfo>> findByConstructorId(String constructorId);
 }

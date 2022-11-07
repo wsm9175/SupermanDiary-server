@@ -3,8 +3,9 @@ package com.lodong.spring.supermandiary.controller.constructor;
 import com.lodong.spring.supermandiary.domain.AffiliatedInfo;
 import com.lodong.spring.supermandiary.domain.address.SiggAreas;
 import com.lodong.spring.supermandiary.domain.constructor.ConstructorWorkArea;
-import com.lodong.spring.supermandiary.dto.WorkApartmentDto;
-import com.lodong.spring.supermandiary.dto.WorkDetailDto;
+import com.lodong.spring.supermandiary.dto.working.UserConstructorDto;
+import com.lodong.spring.supermandiary.dto.working.WorkApartmentDto;
+import com.lodong.spring.supermandiary.dto.working.WorkDetailDto;
 import com.lodong.spring.supermandiary.jwt.JwtTokenProvider;
 import com.lodong.spring.supermandiary.responseentity.StatusEnum;
 import com.lodong.spring.supermandiary.service.MyInfoService;
@@ -12,10 +13,7 @@ import com.lodong.spring.supermandiary.service.WorkingService;
 import com.lodong.spring.supermandiary.service.address.ConstructorAddressService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -130,6 +128,48 @@ public class WorkingController {
         }
     }
 
+    @GetMapping("/member-list")
+    private ResponseEntity<?> getConstructorMember(@RequestHeader(name = "Authorization") String token){
+        String constructorId;
+        try {
+            constructorId = getConstructorId(token);
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = "속한 시공사가 없습니다.";
+            return getResponseMessage(statusEnum, message);
+        }
+
+        try{
+            List<UserConstructorDto> userConstructorDtoList = workingService.getConstructorMember(constructorId);
+            StatusEnum statusEnum = StatusEnum.OK;
+            String message = "시공사 멤버 목록";
+            return getResponseMessage(statusEnum, message, userConstructorDtoList);
+        }catch (NullPointerException e){
+            e.printStackTrace();
+            StatusEnum statusEnum = StatusEnum.NOT_FOUND;
+            String message = "해당 시공사에 작업 가능한 사람이 없습니다.";
+            return getResponseMessage(statusEnum, message);
+        }
+    }
+
+    @PostMapping("/allocation/mem")
+
+    /*@PostMapping("/allocation-member")
+    private ResponseEntity<?> postAllocationMember(@RequestHeader(name = "Authorization") String token){
+        String constructorId;
+        try {
+            constructorId = getConstructorId(token);
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = "속한 시공사가 없습니다.";
+            return getResponseMessage(statusEnum, message);
+        }
+
+
+    }
+*/
     private String getConstructorId(String token) throws NullPointerException {
         String userUuid = jwtTokenProvider.getUserUuid(token.substring(7));
         AffiliatedInfo affiliatedInfo = myInfoService.getAffiliatedInfo(userUuid);

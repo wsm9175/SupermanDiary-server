@@ -1,9 +1,13 @@
 package com.lodong.spring.supermandiary.service;
 
+import com.lodong.spring.supermandiary.domain.AffiliatedInfo;
+import com.lodong.spring.supermandiary.domain.UserConstructor;
 import com.lodong.spring.supermandiary.domain.Working;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
-import com.lodong.spring.supermandiary.dto.WorkApartmentDto;
-import com.lodong.spring.supermandiary.dto.WorkDetailDto;
+import com.lodong.spring.supermandiary.dto.working.UserConstructorDto;
+import com.lodong.spring.supermandiary.dto.working.WorkApartmentDto;
+import com.lodong.spring.supermandiary.dto.working.WorkDetailDto;
+import com.lodong.spring.supermandiary.repo.AffiliatedInfoRepository;
 import com.lodong.spring.supermandiary.repo.WorkingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,6 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Transactional
 public class WorkingService {
     private final WorkingRepository workingRepository;
+    private final AffiliatedInfoRepository affiliatedInfoRepository;
 
     public HashMap<String, List<WorkApartmentDto>> getWorkList(String constructorId, int siggCode) {
         Constructor constructor = Constructor.builder()
@@ -101,7 +106,6 @@ public class WorkingService {
             }
             workApartmentDtos.add(workApartmentDto);
         }
-
         return workApartmentDtos;
     }
 
@@ -148,6 +152,24 @@ public class WorkingService {
         workDetailDto.setManager(null);
 
         return workDetailDto;
+    }
+
+    public List<UserConstructorDto> getConstructorMember(String constructorId) {
+        List<AffiliatedInfo> affiliatedInfos = affiliatedInfoRepository
+                .findByConstructorId(constructorId)
+                .orElseThrow(() -> new NullPointerException("해당 시공사에 작업 가능한 사람이 없습니다."));
+
+        List<UserConstructorDto> userConstructorDtoList = new ArrayList<>();
+        affiliatedInfos.forEach(affiliatedInfo -> {
+            if(affiliatedInfo.getUserConstructor().isActive()){
+                UserConstructorDto userConstructorDto = new UserConstructorDto();
+                userConstructorDto.setId(affiliatedInfo.getUserConstructor().getId());
+                userConstructorDto.setName(affiliatedInfo.getUserConstructor().getName());
+                userConstructorDtoList.add(userConstructorDto);
+            }
+        });
+
+        return userConstructorDtoList;
     }
 }
 
