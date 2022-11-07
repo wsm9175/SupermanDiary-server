@@ -46,6 +46,8 @@ public class UserConstructor implements UserDetails {
     private String sex;
     @Column
     private String refreshToken;
+    @Column
+    private String fcm;
     @ElementCollection(fetch = FetchType.EAGER)
     private List<String> roles;
 

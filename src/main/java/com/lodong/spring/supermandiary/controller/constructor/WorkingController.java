@@ -4,6 +4,7 @@ import com.lodong.spring.supermandiary.domain.AffiliatedInfo;
 import com.lodong.spring.supermandiary.domain.address.SiggAreas;
 import com.lodong.spring.supermandiary.domain.constructor.ConstructorWorkArea;
 import com.lodong.spring.supermandiary.dto.WorkApartmentDto;
+import com.lodong.spring.supermandiary.dto.WorkDetailDto;
 import com.lodong.spring.supermandiary.jwt.JwtTokenProvider;
 import com.lodong.spring.supermandiary.responseentity.StatusEnum;
 import com.lodong.spring.supermandiary.service.MyInfoService;
@@ -97,6 +98,36 @@ public class WorkingController {
 
         String message = phoneNumber + "에 해당하는 작업입니다.";
         return getResponseMessage(statusEnum, message, workApartmentDtos);
+    }
+
+    @GetMapping("/work-detail")
+    private ResponseEntity<?> getWorkDetailByWorkId(@RequestHeader(name = "Authorization") String token, String workId) {
+        String constructorId;
+        try {
+            constructorId = getConstructorId(token);
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = "속한 시공사가 없습니다.";
+            return getResponseMessage(statusEnum, message);
+        }
+
+        try {
+            WorkDetailDto workDetailDto = workingService.getWorkDetailByWork(constructorId, workId);
+            StatusEnum statusEnum = StatusEnum.OK;
+            String message = workId + "작업 상세 정보";
+            return getResponseMessage(statusEnum, message, workDetailDto);
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = e.getMessage();
+            return getResponseMessage(statusEnum, message);
+        } catch (Exception exception){
+            exception.printStackTrace();
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = "알수 없는 에러가 발생했습니다. " + exception.getMessage();
+            return getResponseMessage(statusEnum, message);
+        }
     }
 
     private String getConstructorId(String token) throws NullPointerException {

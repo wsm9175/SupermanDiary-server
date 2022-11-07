@@ -1,7 +1,7 @@
 package com.lodong.spring.supermandiary.domain.constructor;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.lodong.spring.supermandiary.domain.ConstructorProductWorkList;
+import com.lodong.spring.supermandiary.domain.admin.ConstructorProductWorkList;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,16 +20,13 @@ import java.util.List;
 
 public class ConstructorProduct {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String id;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "constructor_id")
     private Constructor constructor;
     @Column(nullable = false)
     private String name;
-    @Column(nullable = false)
     private String introduction;
-    @Column(nullable = false)
     private int price;
     @JsonIgnore
     @OneToMany(mappedBy = "constructorProduct", fetch = FetchType.LAZY, cascade = CascadeType.ALL, targetEntity = ConstructorProductWorkList.class)

@@ -28,6 +28,10 @@ public class Working {
     @JoinColumn(name = "estimate_id", unique = true, nullable = false)
     private Estimate estimate;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_constructor_id", unique = true, nullable = true)
+    private UserConstructor userConstructor;
+
     @Column(nullable = false)
     private boolean isCompleteConstruct;
     @Column(nullable = false)

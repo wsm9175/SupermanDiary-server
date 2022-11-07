@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface WorkingRepository extends JpaRepository<Working, String> {
+    Optional<Working> findByIdAndConstructorId(String id, String constructorId);
     Optional<List<Working>> findByConstructor(Constructor constructor);
-
     Optional<List<Working>> findByConstructorIdAndUserCustomerPhoneNumber(String constructorId, String phoneNumber);
     Optional<List<Working>> findByConstructorIdAndNonMemberPhoneNumber(String constructorId, String phoneNumber);
 }

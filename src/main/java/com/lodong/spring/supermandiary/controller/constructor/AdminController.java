@@ -3,10 +3,13 @@ package com.lodong.spring.supermandiary.controller.constructor;
 import com.lodong.spring.supermandiary.domain.AffiliatedInfo;
 import com.lodong.spring.supermandiary.domain.Apartment;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
+import com.lodong.spring.supermandiary.domain.constructor.ConstructorProduct;
 import com.lodong.spring.supermandiary.domain.constructor.ConstructorWorkArea;
 import com.lodong.spring.supermandiary.domain.address.SiggAreas;
 import com.lodong.spring.supermandiary.dto.ConstructorWorkAreaDTO;
 import com.lodong.spring.supermandiary.dto.admin.ConstructorProductWorkDto;
+import com.lodong.spring.supermandiary.dto.admin.InviteDto;
+import com.lodong.spring.supermandiary.dto.admin.ProductDto;
 import com.lodong.spring.supermandiary.jwt.JwtTokenProvider;
 import com.lodong.spring.supermandiary.responseentity.StatusEnum;
 import com.lodong.spring.supermandiary.service.AdminService;
@@ -45,7 +48,7 @@ public class AdminController {
     }
 
     @GetMapping("/get/work-list")
-    public ResponseEntity<?> getWorkList(@RequestHeader(name = "Authorization") String token){
+    public ResponseEntity<?> getWorkList(@RequestHeader(name = "Authorization") String token) {
         String constructorId;
         try {
             constructorId = getConstructorId(token);
@@ -59,6 +62,26 @@ public class AdminController {
         StatusEnum statusEnum = StatusEnum.OK;
         String message = "작업 목록";
         return getResponseMessage(statusEnum, message, constructorProductWorkDtos);
+    }
+
+    @PostMapping("/add/work")
+    public ResponseEntity<?> getWorkArea(@RequestHeader(name = "Authorization") String token, @RequestBody ProductDto product) {
+        String constructorId;
+        try {
+            constructorId = getConstructorId(token);
+            adminService.setProduct(constructorId, product);
+            StatusEnum statusEnum = StatusEnum.OK;
+            String message = "작업 삽입 성공";
+            return getResponseMessage(statusEnum, message, null);
+        } catch (NullPointerException e) {
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = e.getMessage();
+            return getResponseMessage(statusEnum, message);
+        } catch (DataIntegrityViolationException e) {
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = "DB 삽입중 오류가 발생했습니다.";
+            return getResponseMessage(statusEnum, message);
+        }
     }
 
     //모든 시군구 지역 요청
@@ -131,7 +154,7 @@ public class AdminController {
             constructorAddressService.addWorkAreas(constructorWorkAreas);
             StatusEnum statusEnum = StatusEnum.OK;
             String message = "success";
-            return getResponseMessage(statusEnum, message);
+            return getResponseMessage(statusEnum, message, null);
         } catch (DataIntegrityViolationException e) {
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = "해당 지역은 이미 등록되어있습니다.";
@@ -154,11 +177,19 @@ public class AdminController {
         }
     }
 
+    @PostMapping("/invite")
+    public ResponseEntity<?> inviteMember(@RequestHeader(name = "Authorization") String token, @RequestBody InviteDto invite){
+        adminService.inviteMember(getConstructorId(token), invite);
+        StatusEnum statusEnum = StatusEnum.OK;
+        String message = "초대 성공";
+        return getResponseMessage(statusEnum, message, null);
+    }
 
     private String getConstructorId(String token) throws NullPointerException {
         String userUuid = jwtTokenProvider.getUserUuid(token.substring(7));
         AffiliatedInfo affiliatedInfo = myInfoService.getAffiliatedInfo(userUuid);
         return affiliatedInfo.getConstructor().getId();
     }
+
 
 }
