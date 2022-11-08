@@ -114,7 +114,7 @@ public class WorkingController {
         try {
             WorkDetailDto workDetailDto = workingService.getWorkDetailByWork(constructorId, workId);
             StatusEnum statusEnum = StatusEnum.OK;
-            String message = workId + "작업 상세 정보";
+            String message = workId + " 작업 상세 정보";
             return getResponseMessage(statusEnum, message, workDetailDto);
         } catch (NullPointerException e) {
             e.printStackTrace();
@@ -140,7 +140,6 @@ public class WorkingController {
             String message = "속한 시공사가 없습니다.";
             return getResponseMessage(statusEnum, message);
         }
-
         try {
             List<WorkLevelDto> workLevelDtos = workingService.getWorkLevelList(constructorId, workId);
             StatusEnum statusEnum = StatusEnum.OK;

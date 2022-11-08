@@ -1,9 +1,7 @@
-package com.lodong.spring.supermandiary.domain;
+package com.lodong.spring.supermandiary.domain.working;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.lodong.spring.supermandiary.domain.UserConstructor;
 import com.lodong.spring.supermandiary.domain.admin.ConstructorProductWorkList;
-import com.lodong.spring.supermandiary.domain.constructor.Constructor;
-import com.lodong.spring.supermandiary.domain.constructor.ConstructorProduct;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 

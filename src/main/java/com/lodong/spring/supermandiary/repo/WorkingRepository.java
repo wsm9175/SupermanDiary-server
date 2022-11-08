@@ -1,6 +1,6 @@
 package com.lodong.spring.supermandiary.repo;
 
-import com.lodong.spring.supermandiary.domain.Working;
+import com.lodong.spring.supermandiary.domain.working.Working;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

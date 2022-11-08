@@ -12,7 +12,9 @@ public class WorkLevelDto {
     private int sequence;
     private LocalDate actualDate;
     private boolean isComplete;
-    private String manager;
-    private String managerId;
+    private String currentAssignedTaskManager;
+    private String currentAssignedTaskManagerId;
+    private String currentAssignedTask;
+    private String currentAssignedTaskId;
     private boolean isFileIn;
 }

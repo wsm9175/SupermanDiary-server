@@ -6,6 +6,10 @@ import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import com.lodong.spring.supermandiary.domain.constructor.ConstructorProduct;
 import com.lodong.spring.supermandiary.domain.create.RequestOrder;
 import com.lodong.spring.supermandiary.domain.create.RequestOrderProduct;
+import com.lodong.spring.supermandiary.domain.create.RequestOrderStatusDto;
+import com.lodong.spring.supermandiary.domain.working.NowWorkInfo;
+import com.lodong.spring.supermandiary.domain.working.WorkDetail;
+import com.lodong.spring.supermandiary.domain.working.Working;
 import com.lodong.spring.supermandiary.dto.create.*;
 import com.lodong.spring.supermandiary.repo.*;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +22,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CreateService {
     private final RequestOrderRepository requestOrderRepository;
     private final RequestOrderProductRepository requestOrderProductRepository;
@@ -25,6 +30,10 @@ public class CreateService {
     private final EstimateRepository estimateRepository;
     private final EstimateDetailRepository estimateDetailRepository;
     private final WorkingRepository workingRepository;
+
+
+    private final String STATUS_DELETE = "삭제";
+    private final String STATUS_COMPLETE = "처리완료";
 
     public List<RequestOrderDto> getRequestOrderList(String token) throws NullPointerException {
         Constructor constructor = Constructor.builder()
@@ -38,6 +47,9 @@ public class CreateService {
 
         for (RequestOrder requestOrder : requestOrderList) {
             RequestOrderDto requestOrderDto = new RequestOrderDto();
+            if(requestOrder.getStatus().equals(STATUS_DELETE) || requestOrder.getStatus().equals(STATUS_COMPLETE)){
+                continue;
+            }
             List<ChoiceProductDto> choiceProducts = new ArrayList<>();
 
             List<RequestOrderProduct> requestOrderProductList =
@@ -151,14 +163,13 @@ public class CreateService {
 
     }
 
-    @Transactional
     public void sendEstimateNoneMember(String constructorId, SendEstimateDto sendEstimateDto) {
         Constructor constructor = Constructor.builder()
                 .id(constructorId)
                 .build();
         ConstructorProduct constructorProduct = constructorProductRepository
                 .findById(sendEstimateDto.getProductId())
-                .orElseThrow(()->new NullPointerException("없는 상품입니다."));
+                .orElseThrow(() -> new NullPointerException("없는 상품입니다."));
 
         Estimate estimate = null;
 
@@ -285,10 +296,19 @@ public class CreateService {
                         .build();
                 workDetails.add(workDetail);
             });
+            NowWorkInfo nowWorkInfo = NowWorkInfo.builder()
+                    .id(UUID.randomUUID().toString())
+                    .working(working)
+                    .build();
+
             working.setWorkDetails(workDetails);
+            working.setNowWorkInfo(nowWorkInfo);
             workingRepository.save(working);
         } else {
             throw new NullPointerException("잘못된 값입니다.");
         }
+    }
+    public void updateRequestStatus(RequestOrderStatusDto requestOrderStatus){
+        requestOrderRepository.updateStatus(requestOrderStatus.getStatus(), requestOrderStatus.getRequestOrderId());
     }
 }

@@ -1,5 +1,7 @@
 package com.lodong.spring.supermandiary.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.lodong.spring.supermandiary.domain.working.NowWorkInfo;
 import lombok.*;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,9 +21,6 @@ public class UserConstructor implements UserDetails {
     @Column(nullable = false)
     private String pw;
 
-   /* @OneToMany(fetch = FetchType.EAGER)
-    private Set<UserConstructorTech> userConstructorTech;
-*/
     @Column(nullable = false)
     private String name;
     @Column(nullable = false, unique = true)

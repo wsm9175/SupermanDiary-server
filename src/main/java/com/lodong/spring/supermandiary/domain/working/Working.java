@@ -1,6 +1,10 @@
-package com.lodong.spring.supermandiary.domain;
+package com.lodong.spring.supermandiary.domain.working;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.lodong.spring.supermandiary.domain.Apartment;
+import com.lodong.spring.supermandiary.domain.Estimate;
+import com.lodong.spring.supermandiary.domain.OtherHome;
+import com.lodong.spring.supermandiary.domain.UserCustomer;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import com.lodong.spring.supermandiary.domain.constructor.ConstructorProduct;
 import lombok.*;
@@ -61,8 +65,13 @@ public class Working {
     private String nonMemberName;
     private String nonMemberPhoneNumber;
 
-
     @JsonIgnore
     @OneToMany(mappedBy = "working", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<WorkDetail> workDetails = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToOne(mappedBy = "working", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private NowWorkInfo nowWorkInfo;
+
+
 }

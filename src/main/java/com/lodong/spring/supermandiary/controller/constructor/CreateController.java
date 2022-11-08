@@ -1,6 +1,8 @@
 package com.lodong.spring.supermandiary.controller.constructor;
 
 import com.lodong.spring.supermandiary.domain.AffiliatedInfo;
+import com.lodong.spring.supermandiary.domain.create.RequestOrder;
+import com.lodong.spring.supermandiary.domain.create.RequestOrderStatusDto;
 import com.lodong.spring.supermandiary.dto.create.ConstructorProductDto;
 import com.lodong.spring.supermandiary.dto.create.RequestOrderDto;
 import com.lodong.spring.supermandiary.dto.create.SendEstimateDto;
@@ -9,7 +11,6 @@ import com.lodong.spring.supermandiary.responseentity.StatusEnum;
 import com.lodong.spring.supermandiary.service.CreateService;
 import com.lodong.spring.supermandiary.service.MyInfoService;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -97,7 +98,6 @@ public class CreateController {
             return getResponseMessage(statusEnum, message);
         }
     }
-
     @PostMapping("/send/estimate/non-member")
     public ResponseEntity<?> sendEstimateNoneMember(@RequestHeader(name = "Authorization") String token, @RequestBody SendEstimateDto sendEstimate) {
         String constructorId = getConstructorId(token);
@@ -119,5 +119,22 @@ public class CreateController {
         }
     }
 
-
+    @PostMapping("/update/req-order/state")
+    public ResponseEntity<?> updateRequestOrderStatus(@RequestHeader(name = "Authorization") String token, @RequestBody RequestOrderStatusDto requestOrderStatus){
+        try {
+            createService.updateRequestStatus(requestOrderStatus);
+            StatusEnum statusEnum = StatusEnum.OK;
+            String message = "전자계약서 상태 수정 성공 : " + requestOrderStatus.getStatus();
+            return getResponseMessage(statusEnum, message, null);
+        } catch (DataIntegrityViolationException dataIntegrityViolationException) {
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = "전자계약서 상태 수정중 오류가 발생했습니다." + dataIntegrityViolationException.getMessage();
+            return getResponseMessage(statusEnum, message);
+        } catch (Exception e) {
+            e.printStackTrace();
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = e.getMessage();
+            return getResponseMessage(statusEnum, message);
+        }
+    }
 }

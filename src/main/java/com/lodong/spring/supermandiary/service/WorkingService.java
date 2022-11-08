@@ -1,7 +1,7 @@
 package com.lodong.spring.supermandiary.service;
 
 import com.lodong.spring.supermandiary.domain.AffiliatedInfo;
-import com.lodong.spring.supermandiary.domain.Working;
+import com.lodong.spring.supermandiary.domain.working.Working;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import com.lodong.spring.supermandiary.dto.working.UserConstructorDto;
 import com.lodong.spring.supermandiary.dto.working.WorkApartmentDto;
@@ -179,10 +179,15 @@ public class WorkingService {
                     workLevelDto.setComplete(workDetail.isComplete());
                     workLevelDto.setSequence(workDetail.getConstructorProductWorkList().getSequence());
                     if(workDetail.getUserConstructor() != null){
-                        workLevelDto.setManager(workDetail.getUserConstructor().getName());
-                        workLevelDto.setManagerId(workDetail.getUserConstructor().getId());
+                        workLevelDto.setCurrentAssignedTaskManager(workDetail.getUserConstructor().getName());
+                        workLevelDto.setCurrentAssignedTaskManagerId(workDetail.getUserConstructor().getId());
+                    }
+                    if(workDetail.getWorking().getNowWorkInfo().getWorkDetail() != null){
+                        workLevelDto.setCurrentAssignedTask(workDetail.getWorking().getNowWorkInfo().getWorkDetail().getConstructorProductWorkList().getName());
+                        workLevelDto.setCurrentAssignedTaskId(workDetail.getWorking().getNowWorkInfo().getWorkDetail().getConstructorProductWorkList().getId());
                     }
                     workLevelDto.setFileIn(workDetail.getConstructorProductWorkList().isFileIn());
+
                     workLevelDtos.add(workLevelDto);
                 });
 
