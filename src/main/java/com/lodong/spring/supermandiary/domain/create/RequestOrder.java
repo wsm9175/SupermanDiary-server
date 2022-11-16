@@ -3,13 +3,12 @@ package com.lodong.spring.supermandiary.domain.create;
 import com.lodong.spring.supermandiary.domain.Apartment;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import com.lodong.spring.supermandiary.domain.OtherHome;
-import com.lodong.spring.supermandiary.domain.UserCustomer;
+import com.lodong.spring.supermandiary.domain.usercustomer.UserCustomer;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Slf4j
 @Entity

@@ -1,7 +1,5 @@
 package com.lodong.spring.supermandiary.domain.address;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.lodong.spring.supermandiary.domain.UserConstructor;
 import lombok.*;
 
 import javax.persistence.*;

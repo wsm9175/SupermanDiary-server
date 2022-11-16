@@ -1,5 +1,6 @@
 package com.lodong.spring.supermandiary.domain;
 
+import com.lodong.spring.supermandiary.domain.usercustomer.UserCustomer;
 import lombok.*;
 
 import javax.persistence.*;

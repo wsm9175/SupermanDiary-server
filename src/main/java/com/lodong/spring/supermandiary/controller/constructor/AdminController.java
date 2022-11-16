@@ -1,9 +1,8 @@
 package com.lodong.spring.supermandiary.controller.constructor;
 
-import com.lodong.spring.supermandiary.domain.AffiliatedInfo;
+import com.lodong.spring.supermandiary.domain.userconstructor.AffiliatedInfo;
 import com.lodong.spring.supermandiary.domain.Apartment;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
-import com.lodong.spring.supermandiary.domain.constructor.ConstructorProduct;
 import com.lodong.spring.supermandiary.domain.constructor.ConstructorWorkArea;
 import com.lodong.spring.supermandiary.domain.address.SiggAreas;
 import com.lodong.spring.supermandiary.dto.ConstructorWorkAreaDTO;

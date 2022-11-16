@@ -1,6 +1,6 @@
 package com.lodong.spring.supermandiary.service.chat;
 
-import com.lodong.spring.supermandiary.domain.UserCustomer;
+import com.lodong.spring.supermandiary.domain.usercustomer.UserCustomer;
 import com.lodong.spring.supermandiary.domain.chat.ChatMessage;
 import com.lodong.spring.supermandiary.domain.chat.ChatRoom;
 import com.lodong.spring.supermandiary.repo.ChatMessageRepository;
@@ -11,8 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.UUID;
 
 @Service
 @Slf4j

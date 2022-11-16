@@ -31,9 +31,12 @@ public class CreateService {
     private final EstimateDetailRepository estimateDetailRepository;
     private final WorkingRepository workingRepository;
 
-
     private final String STATUS_DELETE = "삭제";
     private final String STATUS_COMPLETE = "처리완료";
+    private final String STATUS_WORKING_COMPLETE = "완료";
+    private final String STATUS_DEFERE = "보류";
+    private final String STATUS_WORKING = "작업중";
+    private final String STATUS_UN_ASSIGNED = "미배정";
 
     public List<RequestOrderDto> getRequestOrderList(String token) throws NullPointerException {
         Constructor constructor = Constructor.builder()
@@ -63,7 +66,6 @@ public class CreateService {
             }
             requestOrderDto.setId(requestOrder.getId());
             requestOrderDto.setOrderer(requestOrder.getCustomer().getName());
-            requestOrderDto.setPhoneNumber(requestOrder.getCustomer().getPhoneNumber());
             requestOrderDto.setNote(requestOrder.getNote());
             requestOrderDto.setChoiceProducts(choiceProducts);
             requestOrderDto.setStatus(requestOrder.getStatus());
@@ -296,9 +298,19 @@ public class CreateService {
                         .build();
                 workDetails.add(workDetail);
             });
+
+            WorkDetail firstWorkDetail = null;
+            for(WorkDetail workDetail:workDetails){
+                if(workDetail.getConstructorProductWorkList().getSequence() == 1){
+                    firstWorkDetail = workDetail;
+                    break;
+                }
+            }
+
             NowWorkInfo nowWorkInfo = NowWorkInfo.builder()
                     .id(UUID.randomUUID().toString())
                     .working(working)
+                    .workDetail(firstWorkDetail)
                     .build();
 
             working.setWorkDetails(workDetails);

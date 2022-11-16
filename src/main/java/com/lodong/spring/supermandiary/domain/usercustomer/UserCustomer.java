@@ -1,9 +1,11 @@
-package com.lodong.spring.supermandiary.domain;
+package com.lodong.spring.supermandiary.domain.usercustomer;
 
-import com.lodong.spring.supermandiary.domain.address.SiggAreas;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @ToString
@@ -16,16 +18,9 @@ public class UserCustomer {
     @Id
     private String id;
     @Column(nullable = false)
-    private String phoneNumber;
-    @Column(nullable = false)
     private String password;
     @Column(nullable = false)
     private String name;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "sigg_code")
-    private SiggAreas siggAreas;
-    @Column(nullable = false)
-    private String detailAddress;
     @Column(nullable = false)
     private boolean interestInInterior;
     @Column(nullable = false)
@@ -36,4 +31,12 @@ public class UserCustomer {
     private boolean isCertification;
     @Column(nullable = false)
     private boolean isTerm;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "userCustomer", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<CustomerAddress> customerAddressList = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "userCustomer", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<CustomerPhoneNumber> phoneNumbers = new ArrayList<>();
 }

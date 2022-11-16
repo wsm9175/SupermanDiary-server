@@ -41,6 +41,7 @@ public class AdminService {
                 workListDto.setId(constructorProductWorkList.getId());
                 workListDto.setSequence(constructorProductWorkList.getSequence());
                 workListDto.setWorkName(constructorProductWorkList.getName());
+                workListDto.setFileIn(constructorProductWorkList.isFileIn());
                 workListDtos.add(workListDto);
             }
 

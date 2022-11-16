@@ -1,9 +1,11 @@
 package com.lodong.spring.supermandiary.service;
 
-import com.lodong.spring.supermandiary.domain.*;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import com.lodong.spring.supermandiary.domain.constructor.ConstructorTechDetail;
 import com.lodong.spring.supermandiary.domain.file.FileList;
+import com.lodong.spring.supermandiary.domain.userconstructor.AffiliatedInfo;
+import com.lodong.spring.supermandiary.domain.userconstructor.UserConstructor;
+import com.lodong.spring.supermandiary.domain.userconstructor.UserConstructorTech;
 import com.lodong.spring.supermandiary.dto.address.AddressDTO;
 import com.lodong.spring.supermandiary.dto.jwt.TokenRequestDTO;
 import com.lodong.spring.supermandiary.jwt.TokenInfo;
@@ -70,6 +72,7 @@ public class AuthService {
             constructorTechDetailRepository.saveAll(constructorTechDetailList);
             affiliatedInfoRepository.save(affiliatedInfo);
         } catch (Exception e) {
+            e.printStackTrace();
             System.out.println(e.getMessage());
             throw new Exception("데이터 베이스 저장 실패");
         }

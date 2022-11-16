@@ -13,5 +13,4 @@ public class SupermandiaryApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(SupermandiaryApplication.class, args);
 	}
-
 }

@@ -1,6 +1,6 @@
 package com.lodong.spring.supermandiary.domain.working;
 
-import com.lodong.spring.supermandiary.domain.UserConstructor;
+import com.lodong.spring.supermandiary.domain.userconstructor.UserConstructor;
 import com.lodong.spring.supermandiary.domain.admin.ConstructorProductWorkList;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.lodong.spring.supermandiary.domain;
+package com.lodong.spring.supermandiary.domain.userconstructor;
 
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import lombok.*;

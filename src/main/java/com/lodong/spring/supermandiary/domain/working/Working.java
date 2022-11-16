@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.lodong.spring.supermandiary.domain.Apartment;
 import com.lodong.spring.supermandiary.domain.Estimate;
 import com.lodong.spring.supermandiary.domain.OtherHome;
-import com.lodong.spring.supermandiary.domain.UserCustomer;
+import com.lodong.spring.supermandiary.domain.usercustomer.UserCustomer;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import com.lodong.spring.supermandiary.domain.constructor.ConstructorProduct;
 import lombok.*;

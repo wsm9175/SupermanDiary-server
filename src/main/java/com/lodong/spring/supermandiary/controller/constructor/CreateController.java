@@ -1,7 +1,6 @@
 package com.lodong.spring.supermandiary.controller.constructor;
 
-import com.lodong.spring.supermandiary.domain.AffiliatedInfo;
-import com.lodong.spring.supermandiary.domain.create.RequestOrder;
+import com.lodong.spring.supermandiary.domain.userconstructor.AffiliatedInfo;
 import com.lodong.spring.supermandiary.domain.create.RequestOrderStatusDto;
 import com.lodong.spring.supermandiary.dto.create.ConstructorProductDto;
 import com.lodong.spring.supermandiary.dto.create.RequestOrderDto;

@@ -17,4 +17,9 @@ public class WorkDetailDto {
     private String remark;
 
     private boolean isMember;
+    private String currentWorkLevel;
+    private String currentWorkLevelId;
+    private String currentWorkNote;
+    private String currentWorker;
+    private String currentWorkerId;
 }

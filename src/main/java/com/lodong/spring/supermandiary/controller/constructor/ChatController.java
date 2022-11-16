@@ -1,6 +1,6 @@
 package com.lodong.spring.supermandiary.controller.constructor;
 
-import com.lodong.spring.supermandiary.domain.AffiliatedInfo;
+import com.lodong.spring.supermandiary.domain.userconstructor.AffiliatedInfo;
 import com.lodong.spring.supermandiary.domain.chat.ChatMessage;
 import com.lodong.spring.supermandiary.jwt.JwtTokenProvider;
 import com.lodong.spring.supermandiary.service.MyInfoService;

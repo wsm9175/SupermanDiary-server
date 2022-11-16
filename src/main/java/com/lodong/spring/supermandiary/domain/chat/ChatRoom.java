@@ -1,6 +1,6 @@
 package com.lodong.spring.supermandiary.domain.chat;
 
-import com.lodong.spring.supermandiary.domain.UserCustomer;
+import com.lodong.spring.supermandiary.domain.usercustomer.UserCustomer;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import lombok.*;
 

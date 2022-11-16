@@ -13,9 +13,16 @@ import java.util.Optional;
 public interface WorkingRepository extends JpaRepository<Working, String> {
     Optional<Working> findByIdAndConstructorId(String id, String constructorId);
     Optional<List<Working>> findByConstructor(Constructor constructor);
-    Optional<List<Working>> findByConstructorIdAndUserCustomerPhoneNumber(String constructorId, String phoneNumber);
     Optional<List<Working>> findByConstructorIdAndNonMemberPhoneNumber(String constructorId, String phoneNumber);
+    Optional<List<Working>> findByConstructorIdAndUserCustomer_PhoneNumbers_phoneNumber(String constructorId, String phoneNumber);
 
+    Optional<List<Working>> findByConstructorIdAndApartmentDongAndApartmentHosu(String constructorId, String dong, String hosu);
+    Optional<List<Working>> findByConstructorIdAndOtherHomeDongAndOtherHomeHosu(String constructorId,String dong, String hosu);
+
+    Optional<List<Working>> findByConstructorIdAndApartmentDong(String constructorId,String dong);
+    Optional<List<Working>> findByConstructorIdAndApartmentHosu(String constructorId,String hosu);
+    Optional<List<Working>> findByConstructorIdAndOtherHomeDong(String constructorId,String dong);
+    Optional<List<Working>> findByConstructorIdAndOtherHomeHosu(String constructorId,String hosu);
     @Transactional
     @Modifying
     @Query(value = "UPDATE UserConstructor u set u.refreshToken =:refreshToken where u.phoneNumber = :phoneNumber")

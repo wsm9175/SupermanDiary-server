@@ -1,6 +1,6 @@
 package com.lodong.spring.supermandiary.service;
 
-import com.lodong.spring.supermandiary.domain.UserConstructorTech;
+import com.lodong.spring.supermandiary.domain.userconstructor.UserConstructorTech;
 import com.lodong.spring.supermandiary.repo.UserConstructorTechRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

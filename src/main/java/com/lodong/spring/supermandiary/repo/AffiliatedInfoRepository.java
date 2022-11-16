@@ -1,8 +1,7 @@
 package com.lodong.spring.supermandiary.repo;
 
-import com.lodong.spring.supermandiary.domain.AffiliatedInfo;
-import com.lodong.spring.supermandiary.domain.UserConstructor;
-import com.lodong.spring.supermandiary.domain.UserConstructorTech;
+import com.lodong.spring.supermandiary.domain.userconstructor.AffiliatedInfo;
+import com.lodong.spring.supermandiary.domain.userconstructor.UserConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

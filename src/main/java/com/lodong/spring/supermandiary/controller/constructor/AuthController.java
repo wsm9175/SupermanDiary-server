@@ -1,9 +1,11 @@
 package com.lodong.spring.supermandiary.controller.constructor;
 
-import com.lodong.spring.supermandiary.domain.*;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import com.lodong.spring.supermandiary.domain.constructor.ConstructorTechDetail;
 import com.lodong.spring.supermandiary.domain.file.FileList;
+import com.lodong.spring.supermandiary.domain.userconstructor.AffiliatedInfo;
+import com.lodong.spring.supermandiary.domain.userconstructor.UserConstructor;
+import com.lodong.spring.supermandiary.domain.userconstructor.UserConstructorTech;
 import com.lodong.spring.supermandiary.dto.*;
 import com.lodong.spring.supermandiary.dto.address.AddressDTO;
 import com.lodong.spring.supermandiary.dto.auth.ConstructorIdDTO;

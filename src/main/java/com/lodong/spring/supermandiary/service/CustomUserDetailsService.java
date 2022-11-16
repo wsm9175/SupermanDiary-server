@@ -1,6 +1,6 @@
 package com.lodong.spring.supermandiary.service;
 
-import com.lodong.spring.supermandiary.domain.UserConstructor;
+import com.lodong.spring.supermandiary.domain.userconstructor.UserConstructor;
 import com.lodong.spring.supermandiary.repo.UserConstructorRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
