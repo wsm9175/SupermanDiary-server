@@ -3,10 +3,8 @@ package com.lodong.spring.supermandiary.service;
 import com.lodong.spring.supermandiary.domain.admin.ConstructorProductWorkList;
 import com.lodong.spring.supermandiary.domain.constructor.ConstructorProduct;
 import com.lodong.spring.supermandiary.domain.userconstructor.AffiliatedInfo;
-import com.lodong.spring.supermandiary.domain.userconstructor.UserConstructor;
 import com.lodong.spring.supermandiary.domain.working.WorkDetail;
 import com.lodong.spring.supermandiary.dto.calendar.*;
-import com.lodong.spring.supermandiary.dto.working.UserConstructorDto;
 import com.lodong.spring.supermandiary.repo.AffiliatedInfoRepository;
 import com.lodong.spring.supermandiary.repo.ConstructorProductRepository;
 import com.lodong.spring.supermandiary.repo.ConstructorProductWorkListRepository;
@@ -16,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -154,5 +153,24 @@ public class CalendarService {
         filterDataDto.setWorkFilterList(workFilterDtos);
         filterDataDto.setWorkDetailFilterList(workDetailFilterDtos);
         return filterDataDto;
+    }
+
+    public void allocateWorkDetail(String constructorId, String workDetailId, LocalDate date, LocalTime time, String workerId, String note) throws NullPointerException{
+        //이전 작업이 등록돼있는가 sequence가 2이상인 경우
+        WorkDetail workDetail = workDetailRepository
+                .findById(workDetailId)
+                .orElseThrow(()-> new NullPointerException("해당 작업은 존재하지 않습니다."));
+
+        String workId = workDetail.getWorking().getId();
+        int sequence = workDetail.getConstructorProductWorkList().getSequence();
+        if (sequence >= 2) {
+            WorkDetail beforeWorkDetail = workDetailRepository
+                    .findByWorkingIdAndConstructorProductWorkList_Sequence(workId, sequence-1)
+                    .orElseThrow(()-> new NullPointerException("그 전 작업이 없음"));
+            if(beforeWorkDetail.getUserConstructor() == null){
+                throw new NullPointerException("전단계 작업에 담당자가 할당 되지 않았습니다. 전단계 : " + beforeWorkDetail.getConstructorProductWorkList().getName() + " 할당하려는 작업 단계: " + workDetail.getConstructorProductWorkList().getName());
+            }
+        }
+        workDetailRepository.updateWorkDetail(workDetailId, date, time, workerId, note);
     }
 }

@@ -3,10 +3,7 @@ package com.lodong.spring.supermandiary.controller.constructor;
 import com.lodong.spring.supermandiary.domain.userconstructor.AffiliatedInfo;
 import com.lodong.spring.supermandiary.domain.address.SiggAreas;
 import com.lodong.spring.supermandiary.domain.constructor.ConstructorWorkArea;
-import com.lodong.spring.supermandiary.dto.working.UserConstructorDto;
-import com.lodong.spring.supermandiary.dto.working.WorkApartmentDto;
-import com.lodong.spring.supermandiary.dto.working.WorkDetailDto;
-import com.lodong.spring.supermandiary.dto.working.WorkLevelDto;
+import com.lodong.spring.supermandiary.dto.working.*;
 import com.lodong.spring.supermandiary.jwt.JwtTokenProvider;
 import com.lodong.spring.supermandiary.responseentity.StatusEnum;
 import com.lodong.spring.supermandiary.service.MyInfoService;
@@ -74,13 +71,13 @@ public class WorkingController {
             String message = null;
             if (phoneNumber != null) {
                 message = phoneNumber + " 에 대한 작업 목록";
-            }else if(dong != null && hosu != null){
+            } else if (dong != null && hosu != null) {
                 message = dong + " " + hosu + "에 대한 작업 목록";
-            }else if(dong != null){
+            } else if (dong != null) {
                 message = dong + " 에 대한 작업 목록";
-            }else if(hosu != null){
+            } else if (hosu != null) {
                 message = hosu + " 에 대한 작업 목록";
-            }else{
+            } else {
                 StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
                 message = "전달 파라미터 없음";
                 return getResponseMessage(statusEnum, message);
@@ -191,6 +188,32 @@ public class WorkingController {
             String message = "해당 시공사에 작업 가능한 사람이 없습니다.";
             return getResponseMessage(statusEnum, message);
         }
+    }
+
+    @GetMapping("/get/estimate")
+    private ResponseEntity<?> getEstimate(@RequestHeader(name = "Authorization") String token, String workId) {
+        String constructorId;
+        try {
+            constructorId = getConstructorId(token);
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = "속한 시공사가 없습니다.";
+            return getResponseMessage(statusEnum, message);
+        }
+
+        try {
+            EstimateInfoDto estimateInfoDto = workingService.getEstimate(constructorId, workId);
+            StatusEnum statusEnum = StatusEnum.OK;
+            String message = "견적서 정보 불러오기 성공";
+            return getResponseMessage(statusEnum, message, estimateInfoDto);
+        } catch (Exception e) {
+            e.printStackTrace();
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = "견적서 정보를 불러오는데 오류가 발생했습니다." + e.getMessage();
+            return getResponseMessage(statusEnum, message);
+        }
+
     }
 
 

@@ -19,7 +19,7 @@ import javax.persistence.*;
 public class RequestOrderProduct {
     @Id
     private int id;
-    @ManyToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "request_order_id")
     private RequestOrder requestOrder;
     @ManyToOne(fetch = FetchType.EAGER)

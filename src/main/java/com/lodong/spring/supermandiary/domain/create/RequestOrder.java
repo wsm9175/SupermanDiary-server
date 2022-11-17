@@ -1,5 +1,6 @@
 package com.lodong.spring.supermandiary.domain.create;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.lodong.spring.supermandiary.domain.Apartment;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import com.lodong.spring.supermandiary.domain.OtherHome;
@@ -48,6 +49,8 @@ public class RequestOrder {
     private String otherHomeHosu;
     @Column(nullable = true)
     private String status;
+    @Column(nullable = true)
+    private String otherHomeType;
 
     /////////////////////////////
     @Column(nullable = false)
@@ -58,4 +61,11 @@ public class RequestOrder {
     private LocalDate requestConstructDate;
     @Column(nullable = false)
     private boolean isConfirmationConstruct;
+    @Column(nullable = false)
+    private boolean isCashReceipt;
+
+    @JsonIgnore
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "requestOrder")
+    private RequestOrderProduct requestOrderProduct;
+
 }

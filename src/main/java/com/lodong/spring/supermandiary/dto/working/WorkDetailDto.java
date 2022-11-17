@@ -22,4 +22,5 @@ public class WorkDetailDto {
     private String currentWorkNote;
     private String currentWorker;
     private String currentWorkerId;
+    private String currentWorkDetail;
 }

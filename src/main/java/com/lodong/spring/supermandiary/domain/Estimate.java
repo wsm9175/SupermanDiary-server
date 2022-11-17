@@ -53,6 +53,8 @@ public class Estimate {
     private String phoneNumber;
     @Column(nullable = true)
     private String remark;
+    @Column(nullable = true)
+    private boolean isCashReceipt;
     @Column(nullable = false)
     private int price;
     @Column(nullable = false)

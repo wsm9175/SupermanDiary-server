@@ -1,18 +1,20 @@
 package com.lodong.spring.supermandiary.service;
 
+import com.lodong.spring.supermandiary.domain.Estimate;
+import com.lodong.spring.supermandiary.domain.EstimateDetail;
+import com.lodong.spring.supermandiary.domain.create.RequestOrder;
 import com.lodong.spring.supermandiary.domain.userconstructor.AffiliatedInfo;
 import com.lodong.spring.supermandiary.domain.working.Working;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
-import com.lodong.spring.supermandiary.dto.working.UserConstructorDto;
-import com.lodong.spring.supermandiary.dto.working.WorkApartmentDto;
-import com.lodong.spring.supermandiary.dto.working.WorkDetailDto;
-import com.lodong.spring.supermandiary.dto.working.WorkLevelDto;
+import com.lodong.spring.supermandiary.dto.working.*;
 import com.lodong.spring.supermandiary.repo.AffiliatedInfoRepository;
+import com.lodong.spring.supermandiary.repo.EstimateRepository;
 import com.lodong.spring.supermandiary.repo.WorkingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -81,7 +83,7 @@ public class WorkingService {
         //비회원
         List<Working> noneMemberWokringList = null;
         List<Working> joined = new ArrayList<>();
-        if(phoneNumber != null){
+        if (phoneNumber != null) {
             //회원
             memberWorkingList = workingRepository
                     .findByConstructorIdAndUserCustomer_PhoneNumbers_phoneNumber(constructorId, phoneNumber)
@@ -90,7 +92,7 @@ public class WorkingService {
             noneMemberWokringList = workingRepository
                     .findByConstructorIdAndNonMemberPhoneNumber(constructorId, phoneNumber)
                     .orElse(new ArrayList<>());
-        }else if(dong != null && hosu != null){
+        } else if (dong != null && hosu != null) {
             //아파트
             memberWorkingList = workingRepository
                     .findByConstructorIdAndApartmentDongAndApartmentHosu(constructorId, dong, hosu)
@@ -99,7 +101,7 @@ public class WorkingService {
             noneMemberWokringList = workingRepository
                     .findByConstructorIdAndOtherHomeDongAndOtherHomeHosu(constructorId, dong, hosu)
                     .orElse(new ArrayList<>());
-        }else if(dong == null){
+        } else if (dong == null) {
             //아파트
             memberWorkingList = workingRepository
                     .findByConstructorIdAndApartmentHosu(constructorId, hosu)
@@ -108,7 +110,7 @@ public class WorkingService {
             noneMemberWokringList = workingRepository
                     .findByConstructorIdAndOtherHomeHosu(constructorId, hosu)
                     .orElse(new ArrayList<>());
-        }else {
+        } else {
             memberWorkingList = workingRepository
                     .findByConstructorIdAndApartmentDong(constructorId, dong)
                     .orElse(new ArrayList<>());
@@ -172,13 +174,14 @@ public class WorkingService {
         workDetailDto.setPrice(working.getEstimate().getPrice());
         workDetailDto.setNote(working.getEstimate().getNote());
         workDetailDto.setRemark(working.getEstimate().getRemark());
+        workDetailDto.setCurrentWorkDetail(working.getNowWorkInfo().getWorkDetail().getId());
         // 현재 작업자 및 현재 작업
-        if(working.getNowWorkInfo().getWorkDetail().getConstructorProductWorkList() != null){
+        if (working.getNowWorkInfo().getWorkDetail().getConstructorProductWorkList() != null) {
             workDetailDto.setCurrentWorkLevel(working.getNowWorkInfo().getWorkDetail().getConstructorProductWorkList().getName());
             workDetailDto.setCurrentWorkLevelId(working.getNowWorkInfo().getWorkDetail().getConstructorProductWorkList().getId());
             workDetailDto.setCurrentWorkNote(working.getNowWorkInfo().getWorkDetail().getNote());
         }
-        if(working.getNowWorkInfo().getWorkDetail().getUserConstructor() != null){
+        if (working.getNowWorkInfo().getWorkDetail().getUserConstructor() != null) {
             workDetailDto.setCurrentWorker(working.getNowWorkInfo().getWorkDetail().getUserConstructor().getName());
             workDetailDto.setCurrentWorkerId(working.getNowWorkInfo().getWorkDetail().getUserConstructor().getId());
         }
@@ -193,7 +196,7 @@ public class WorkingService {
 
         List<UserConstructorDto> userConstructorDtoList = new ArrayList<>();
         affiliatedInfos.forEach(affiliatedInfo -> {
-            if(affiliatedInfo.getUserConstructor().isActive()){
+            if (affiliatedInfo.getUserConstructor().isActive()) {
                 UserConstructorDto userConstructorDto = new UserConstructorDto();
                 userConstructorDto.setId(affiliatedInfo.getUserConstructor().getId());
                 userConstructorDto.setName(affiliatedInfo.getUserConstructor().getName());
@@ -204,10 +207,10 @@ public class WorkingService {
         return userConstructorDtoList;
     }
 
-    public List<WorkLevelDto> getWorkLevelList(String constructorId, String workId){
+    public List<WorkLevelDto> getWorkLevelList(String constructorId, String workId) {
         Working working = workingRepository
                 .findByIdAndConstructorId(workId, constructorId)
-                .orElseThrow(()-> new NullPointerException("작업이 존재하지 않습니다."));
+                .orElseThrow(() -> new NullPointerException("작업이 존재하지 않습니다."));
 
         List<WorkLevelDto> workLevelDtos = new ArrayList<>();
 
@@ -220,11 +223,11 @@ public class WorkingService {
                     workLevelDto.setActualDate(workDetail.getActualWorkDate());
                     workLevelDto.setComplete(workDetail.isComplete());
                     workLevelDto.setSequence(workDetail.getConstructorProductWorkList().getSequence());
-                    if(workDetail.getUserConstructor() != null){
+                    if (workDetail.getUserConstructor() != null) {
                         workLevelDto.setCurrentAssignedTaskManager(workDetail.getUserConstructor().getName());
                         workLevelDto.setCurrentAssignedTaskManagerId(workDetail.getUserConstructor().getId());
                     }
-                    if(workDetail.getWorking().getNowWorkInfo().getWorkDetail() != null){
+                    if (workDetail.getWorking().getNowWorkInfo().getWorkDetail() != null) {
                         workLevelDto.setCurrentAssignedTask(workDetail.getWorking().getNowWorkInfo().getWorkDetail().getConstructorProductWorkList().getName());
                         workLevelDto.setCurrentAssignedTaskId(workDetail.getWorking().getNowWorkInfo().getWorkDetail().getConstructorProductWorkList().getId());
                     }
@@ -232,13 +235,107 @@ public class WorkingService {
 
                     workLevelDtos.add(workLevelDto);
                 });
-
         return workLevelDtos;
+    }
+
+    public EstimateInfoDto getEstimate(String constructorId, String workId) {
+        Working working = workingRepository
+                .findByIdAndConstructorId(workId, constructorId)
+                .orElseThrow(() -> new NullPointerException("해당 작업은 더이상 존재하지 않습니다."));
+
+        Estimate estimate = working.getEstimate();
+        RequestOrder requestOrder = estimate.getRequestOrder();
+
+        //회원 비회원 구분
+        boolean isIsMember;
+        String customerName = null;
+        List<String> phoneNumber = new ArrayList<>();
+        String homeName = null;
+        String dong = null;
+        String hosu = null;
+        String type = null;
+        LocalDate livedIn = null;
+        boolean isConfirmationLiveIn = false;
+        LocalDate requestConstructorDate = null;
+        boolean isConfirmationConstruct = false;
+        boolean isCashReceipt = false;
+        String customerNote = null;
+        String productName = null;
+        List<EstimateDetailDto> estimateDetailList = new ArrayList<>();
+        List<DiscountDto> discountDtoList = new ArrayList<>();
+        int totalPrice;
+        boolean isVat;
+        String constructorNote = null;
+
+        if (requestOrder != null) { // 회원
+            isIsMember = true;
+            customerName = requestOrder.getCustomer().getName();
+            requestOrder.getCustomer().getPhoneNumbers().forEach(customerPhoneNumber -> {
+                phoneNumber.add(customerPhoneNumber.getPhoneNumber());
+            });
+            //아파트 기타 건물 구분
+            if (requestOrder.getApartment() != null) {
+                homeName = requestOrder.getApartment().getName();
+                dong = requestOrder.getDong();
+                hosu = requestOrder.getHosu();
+                type = requestOrder.getApartment_type();
+            } else {
+                homeName = requestOrder.getOtherHome().getName();
+                dong = requestOrder.getOtherHomeDong();
+                hosu = requestOrder.getOtherHomeHosu();
+                type = requestOrder.getOtherHomeType();
+            }
+            livedIn = requestOrder.getLiveInDate();
+            isConfirmationLiveIn = requestOrder.isConfirmationLiveIn();
+            isCashReceipt = requestOrder.isCashReceipt();
+            customerNote = requestOrder.getNote();
+            productName = requestOrder.getRequestOrderProduct().getConstructorProduct().getName();
+            ////////////////////////////////////////////////////////////
+        } else { // 비회원
+            isIsMember = false;
+            customerName = estimate.getName();
+            phoneNumber.add(estimate.getPhoneNumber());
+            //아파트 기타 건물 구분
+            if (estimate.getApartment() != null) {
+                homeName = estimate.getApartment().getName();
+                dong = estimate.getApartment_dong();
+                hosu = estimate.getApartment_hosu();
+                type = estimate.getApartment_type();
+            } else if (estimate.getOtherHome() != null) {
+                homeName = estimate.getOtherHome().getName();
+                dong = estimate.getOtherHomeDong();
+                hosu = estimate.getOtherHomeHosu();
+                type = estimate.getOtherHomeType();
+            }
+            isCashReceipt = estimate.isCashReceipt();
+            customerNote = estimate.getNote();
+            productName = estimate.getConstructorProduct().getName();
+        }
+
+        estimate.getEstimateDetails().stream().forEach(estimateDetail -> {
+            EstimateDetailDto estimateDetailDto = new EstimateDetailDto();
+            estimateDetailDto.setName(estimateDetail.getProductName());
+            estimateDetailDto.setCount(estimateDetail.getCount());
+            estimateDetailDto.setPrice(estimateDetail.getPrice());
+            estimateDetailList.add(estimateDetailDto);
+        });
+        estimate.getDiscountList().stream().forEach(discount -> {
+            DiscountDto dto = new DiscountDto();
+            dto.setContent(discount.getDiscountContent());
+            dto.setDiscountPrice(discount.getDiscount());
+            discountDtoList.add(dto);
+        });
+        isVat = estimate.isVat();
+        totalPrice = estimate.getPrice();
+        constructorNote = estimate.getRemark();
+
+        EstimateInfoDto estimateInfoDto = new EstimateInfoDto(isIsMember, customerName, phoneNumber, homeName, dong, hosu, type, livedIn,
+                isConfirmationLiveIn, requestConstructorDate, isConfirmationConstruct, isCashReceipt, customerNote, productName,
+                estimateDetailList, discountDtoList, totalPrice, isVat, constructorNote);
+
+        return estimateInfoDto;
 
     }
 
-   /* public List<?> allocateMember(String constructorId, String workId, String memberId){
-
-    }*/
 }
 
