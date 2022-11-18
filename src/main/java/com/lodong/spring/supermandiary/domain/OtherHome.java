@@ -18,7 +18,7 @@ import javax.persistence.*;
 public class OtherHome {
     @Id
     private String id;
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sigg_code")
     private SiggAreas siggAreas;
     @Column(nullable = false)

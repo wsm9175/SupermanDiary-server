@@ -17,6 +17,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class SaveFileService {
     private final FileRepository fileRepository;
     private final BusinessLicenseRepository businessLicenseRepository;
@@ -25,7 +26,6 @@ public class SaveFileService {
     private final String STORAGE_ROOT_PATH = "/home/lodong/TestStorage/";
     private final String BUSINESSLICENSE_PATH = "business-license/";
 
-    @Transactional
     public void saveBusinessLicense(FileList businessLicense, String constructorId, MultipartFile file) throws NullPointerException {
         if (businessLicense != null) {
             //저장경로 및 생성시간 설정
@@ -49,6 +49,14 @@ public class SaveFileService {
         } else {
             throw new NullPointerException();
         }
+    }
+
+    public String getFileStorage(String name){
+        FileList fileList = fileRepository
+                .findByName(name)
+                .orElseThrow(()->new NullPointerException("해당 이미지는 존재하지 않습니다."));
+
+        return fileList.getStorage();
     }
 
     private void saveFile(MultipartFile file, String storage) throws IOException {

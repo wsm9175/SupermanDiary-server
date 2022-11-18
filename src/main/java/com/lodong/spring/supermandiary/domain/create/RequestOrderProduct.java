@@ -19,10 +19,10 @@ import javax.persistence.*;
 public class RequestOrderProduct {
     @Id
     private int id;
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "request_order_id")
     private RequestOrder requestOrder;
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     private ConstructorProduct constructorProduct;
 }

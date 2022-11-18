@@ -15,7 +15,7 @@ import javax.persistence.*;
 public class CustomerInterestService {
     @Id
     private String id;
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id")
     private UserCustomer userCustomer;
 

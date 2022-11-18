@@ -17,7 +17,7 @@ public class UserConstructorTech {
     @Column(nullable = false)
     private String techName;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id",insertable = false, updatable = false)
     @JsonBackReference
     private UserConstructor userConstructor;

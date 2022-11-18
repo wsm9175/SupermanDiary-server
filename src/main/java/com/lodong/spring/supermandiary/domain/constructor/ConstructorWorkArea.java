@@ -1,5 +1,6 @@
 package com.lodong.spring.supermandiary.domain.constructor;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.lodong.spring.supermandiary.domain.address.SiggAreas;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
@@ -26,10 +27,11 @@ public class ConstructorWorkArea {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    @ManyToOne(targetEntity = Constructor.class, fetch = FetchType.EAGER)
+    @JsonIgnore
+    @ManyToOne(targetEntity = Constructor.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "constructor_id", referencedColumnName = "id")
     private Constructor constructor;
-
+    @JsonIgnore
     @ManyToOne(targetEntity = SiggAreas.class, fetch = FetchType.EAGER)
     @JoinColumn(name = "sigg_code")
     //@JsonBackReference

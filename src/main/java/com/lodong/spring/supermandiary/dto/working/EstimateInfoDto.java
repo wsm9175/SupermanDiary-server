@@ -28,7 +28,4 @@ public class EstimateInfoDto {
     private boolean isVat;
     private String constructorNote;
 
-
-
-
 }

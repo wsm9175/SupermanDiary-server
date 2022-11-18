@@ -1,10 +1,11 @@
 package com.lodong.spring.supermandiary.domain.address;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
 
-@Entity @Getter @Setter @ToString
+@Entity @Getter @Setter
 @Builder
 @AllArgsConstructor @NoArgsConstructor
 

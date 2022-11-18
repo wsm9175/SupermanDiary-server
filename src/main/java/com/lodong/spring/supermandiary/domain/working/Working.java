@@ -7,6 +7,7 @@ import com.lodong.spring.supermandiary.domain.OtherHome;
 import com.lodong.spring.supermandiary.domain.usercustomer.UserCustomer;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import com.lodong.spring.supermandiary.domain.constructor.ConstructorProduct;
+import jdk.jfr.Name;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,10 +15,22 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+
+
 @Slf4j @Entity @ToString
 @Builder @Getter @Setter
 @AllArgsConstructor @NoArgsConstructor
-
+@NamedEntityGraphs({
+        @NamedEntityGraph(name = "get-estimate-info", attributeNodes = {
+                @NamedAttributeNode("constructor"),
+                @NamedAttributeNode("constructorProduct"),
+                @NamedAttributeNode("estimate"),
+                @NamedAttributeNode("apartment"),
+                @NamedAttributeNode("otherHome"),
+                @NamedAttributeNode("userCustomer"),
+                @NamedAttributeNode(value = "workDetails")
+        })
+})
 public class Working {
     //공통변수
     @Id

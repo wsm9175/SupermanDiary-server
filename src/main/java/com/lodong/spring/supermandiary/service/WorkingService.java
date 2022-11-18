@@ -3,6 +3,7 @@ package com.lodong.spring.supermandiary.service;
 import com.lodong.spring.supermandiary.domain.Estimate;
 import com.lodong.spring.supermandiary.domain.EstimateDetail;
 import com.lodong.spring.supermandiary.domain.create.RequestOrder;
+import com.lodong.spring.supermandiary.domain.file.WorkFile;
 import com.lodong.spring.supermandiary.domain.userconstructor.AffiliatedInfo;
 import com.lodong.spring.supermandiary.domain.working.Working;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
@@ -203,7 +204,6 @@ public class WorkingService {
                 userConstructorDtoList.add(userConstructorDto);
             }
         });
-
         return userConstructorDtoList;
     }
 
@@ -232,7 +232,13 @@ public class WorkingService {
                         workLevelDto.setCurrentAssignedTaskId(workDetail.getWorking().getNowWorkInfo().getWorkDetail().getConstructorProductWorkList().getId());
                     }
                     workLevelDto.setFileIn(workDetail.getConstructorProductWorkList().isFileIn());
-
+                    if (workDetail.getConstructorProductWorkList().isFileIn()) {
+                        List<String> fileNameList = new ArrayList<>();
+                        for (WorkFile workFile : workDetail.getWorkFileList()) {
+                            fileNameList.add(workFile.getFileList().getName());
+                        }
+                        workLevelDto.setFileNameList(fileNameList);
+                    }
                     workLevelDtos.add(workLevelDto);
                 });
         return workLevelDtos;

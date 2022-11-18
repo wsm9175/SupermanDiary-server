@@ -15,7 +15,7 @@ import javax.persistence.*;
 public class WorkFile {
     @Id
     private String id;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name =  "file_id")
     private FileList fileList;
     @ManyToOne(fetch = FetchType.LAZY)

@@ -11,7 +11,6 @@ import java.util.List;
 
 @Slf4j
 @Entity
-@ToString
 @Builder
 @Getter
 @Setter
@@ -21,13 +20,15 @@ import java.util.List;
 public class ConstructorProduct {
     @Id
     private String id;
-    @ManyToOne(fetch = FetchType.EAGER)
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "constructor_id")
     private Constructor constructor;
     @Column(nullable = false)
     private String name;
     private String introduction;
     private int price;
+
     @JsonIgnore
     @OneToMany(mappedBy = "constructorProduct", fetch = FetchType.LAZY, cascade = CascadeType.ALL, targetEntity = ConstructorProductWorkList.class)
     private List<ConstructorProductWorkList> constructorProductWorkLists = new ArrayList<>();

@@ -23,13 +23,16 @@ import java.time.LocalDate;
 public class RequestOrder {
     @Id
     private String id;
-    @ManyToOne(fetch = FetchType.EAGER)
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "constructor_id")
     private Constructor constructor;
-    @ManyToOne(fetch = FetchType.EAGER)
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id")
     private UserCustomer customer;
-    @ManyToOne(fetch = FetchType.EAGER)
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "apartment_code")
     private Apartment apartment;
     @Column(nullable = true)
@@ -40,7 +43,7 @@ public class RequestOrder {
     private String hosu;
     @Column(nullable = false)
     private String note;
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "other_home_id")
     private OtherHome otherHome;
     @Column(nullable = true)

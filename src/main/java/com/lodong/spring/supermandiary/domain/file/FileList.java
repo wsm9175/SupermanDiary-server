@@ -1,6 +1,7 @@
 package com.lodong.spring.supermandiary.domain.file;
 
 import lombok.*;
+import org.hibernate.jdbc.Work;
 
 import javax.persistence.*;
 
@@ -24,11 +25,11 @@ public class FileList {
     @Column(nullable = false)
     private String createAt;
 
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "fileList", cascade = CascadeType.ALL)
+    private WorkFile workFile;
+
     @PrePersist
     public void prePersist() {
 
     }
-
-
-
 }

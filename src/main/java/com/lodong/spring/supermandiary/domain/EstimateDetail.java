@@ -18,7 +18,7 @@ import java.util.List;
 public class EstimateDetail {
     @Id
     private String id;
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "estimate_id")
     private Estimate estimate;
     @Column(nullable = false)

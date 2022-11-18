@@ -1,5 +1,6 @@
 package com.lodong.spring.supermandiary.domain.admin;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import lombok.*;
 
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
 public class Invite {
     @Id
     private String id;
-
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "constructor_id")
     private Constructor constructor;

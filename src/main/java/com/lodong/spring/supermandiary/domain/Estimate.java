@@ -11,23 +11,23 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@Slf4j @Entity @ToString
+@Slf4j @Entity
 @Builder @Getter @Setter
 @AllArgsConstructor @NoArgsConstructor
 
 public class Estimate {
     @Id
     private String id;
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "constructor_id")
     private Constructor constructor;
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     private ConstructorProduct constructorProduct;
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "request_order_id")
     private RequestOrder requestOrder;
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "apartment_code")
     private Apartment apartment;
     @Column(nullable = true)
@@ -36,7 +36,7 @@ public class Estimate {
     private String apartment_hosu;
     @Column(nullable = true)
     private String apartment_type;
-    @ManyToOne(fetch =  FetchType.EAGER)
+    @ManyToOne(fetch =  FetchType.LAZY)
     @JoinColumn(name = "other_home_id")
     private OtherHome otherHome;
     @Column(nullable = true)

@@ -6,7 +6,7 @@ import javax.persistence.*;
 import java.util.Set;
 
 @Entity @Getter @Setter
-@ToString @Builder
+@Builder
 @AllArgsConstructor @NoArgsConstructor
 @Table(name = "sido_areas")
 public class SidoAreas {

@@ -1,6 +1,8 @@
 package com.lodong.spring.supermandiary.domain.userconstructor;
 
+import com.lodong.spring.supermandiary.domain.working.WorkDetail;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,9 +11,22 @@ import javax.persistence.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@NamedEntityGraph(name = "userConstructor-with-workDetail", attributeNodes = {
+        @NamedAttributeNode(value = "workDetails", subgraph = "working"),
+        @NamedAttributeNode(value = "workDetails", subgraph = "working"),
+        },
+        subgraphs = @NamedSubgraph(name = "working", attributeNodes = {
+                @NamedAttributeNode("working")
+        })
+)
+
 @Entity
-@Getter @Setter @ToString @Builder
-@AllArgsConstructor @NoArgsConstructor
+@Getter
+@Setter
+@ToString
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserConstructor implements UserDetails {
     @Id
     private String id;
@@ -44,13 +59,17 @@ public class UserConstructor implements UserDetails {
     private String refreshToken;
     @Column
     private String fcm;
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     private List<String> roles;
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "userConstructor")
+    private List<WorkDetail> workDetails = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {
 
     }
+
     public UserConstructor(String id, String name, String phoneNumber, String email, boolean isCeo, boolean active, boolean accept, int ageGroup, int career) {
         this.id = id;
         this.name = name;
@@ -64,7 +83,7 @@ public class UserConstructor implements UserDetails {
     }
 
     public static UserConstructor getPublicProfile(UserConstructor userConstructor) {
-        return new UserConstructor(userConstructor.getId(), userConstructor.getName(), userConstructor.getPhoneNumber(),userConstructor.getEmail(), userConstructor.isCeo, userConstructor.isActive(), userConstructor.isAccept(), userConstructor.getAgeGroup(), userConstructor.getCareer());
+        return new UserConstructor(userConstructor.getId(), userConstructor.getName(), userConstructor.getPhoneNumber(), userConstructor.getEmail(), userConstructor.isCeo, userConstructor.isActive(), userConstructor.isAccept(), userConstructor.getAgeGroup(), userConstructor.getCareer());
     }
 
     @Override

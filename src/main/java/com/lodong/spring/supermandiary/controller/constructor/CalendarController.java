@@ -19,7 +19,6 @@ import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 
-
 import static com.lodong.spring.supermandiary.util.MakeResponseEntity.getResponseMessage;
 
 @Slf4j
@@ -37,7 +36,7 @@ public class CalendarController {
     }
 
     @GetMapping("/get/work-list")
-    public ResponseEntity<?> getWorkListByDate(@RequestHeader(name = "Authorization") String token, @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+    public ResponseEntity<?> getWorkList(@RequestHeader(name = "Authorization") String token) {
         String constructorId;
         try {
             constructorId = getConstructorId(token);
@@ -48,9 +47,9 @@ public class CalendarController {
         }
         try {
             HashMap<String, List<WorkDetailByConstructorDto>> map = calendarService
-                    .getWorkListByDate(constructorId, date);
+                    .getWorkList(constructorId);
             StatusEnum statusEnum = StatusEnum.OK;
-            String message = date + "에 해당하는 작업 목록";
+            String message = "작업 목록";
             return getResponseMessage(statusEnum, message, map);
         } catch (Exception e) {
             e.printStackTrace();

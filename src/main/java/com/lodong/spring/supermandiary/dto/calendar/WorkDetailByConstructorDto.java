@@ -2,12 +2,14 @@ package com.lodong.spring.supermandiary.dto.calendar;
 
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Data
 public class WorkDetailByConstructorDto {
     private String workId;
     private String workDetailId;
+    private LocalDate estimateWorkDate;
     private LocalTime estimateWorkTime;
     private String workLevelName;
     private String productName;

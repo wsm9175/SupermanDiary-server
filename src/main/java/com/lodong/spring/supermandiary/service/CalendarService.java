@@ -29,76 +29,71 @@ public class CalendarService {
     private final ConstructorProductWorkListRepository constructorProductWorkListRepository;
 
 
-    public HashMap<String, List<WorkDetailByConstructorDto>> getWorkListByDate(String constructorId, LocalDate date) {
+    public HashMap<String, List<WorkDetailByConstructorDto>> getWorkList(String constructorId) {
         List<WorkDetail> workDetailList = workDetailRepository
-                .findByWorkingConstructorIdAndEstimateWorkDate(constructorId, date)
-                .orElseThrow(() -> new NullPointerException("해당 일자에 작업이 없습니다."));
+                .findByWorkingConstructorId(constructorId)
+                .orElseThrow(() -> new NullPointerException("작업이 없습니다."));
 
         HashMap<String, List<WorkDetailByConstructorDto>> map = new HashMap<>();
         for (WorkDetail workDetail : workDetailList) {
-            // 키 값
-            String worker = workDetail.getUserConstructor().getName();
-            // 공통 변수
             WorkDetailByConstructorDto workDetailByConstructorDto = new WorkDetailByConstructorDto();
-            workDetailByConstructorDto.setWorkId(workDetail.getWorking().getId());
-            workDetailByConstructorDto.setWorkDetailId(workDetail.getId());
-            workDetailByConstructorDto.setProductName(workDetail.getWorking().getConstructorProduct().getName());
-            workDetailByConstructorDto.setWorkLevelName(workDetail.getConstructorProductWorkList().getName());
-            workDetailByConstructorDto.setEstimateWorkTime(workDetail.getEstimateWorkTime());
-            workDetailByConstructorDto.setComplete(workDetail.isComplete());
-            // 주소 구분
-            if (workDetail.getWorking().getApartment() != null) {
-                workDetailByConstructorDto.setHomeName(workDetail.getWorking().getApartment().getName());
-                workDetailByConstructorDto.setDong(workDetail.getWorking().getApartmentDong());
-                workDetailByConstructorDto.setHosu(workDetail.getWorking().getApartmentHosu());
-            } else if (workDetail.getWorking().getOtherHome() != null) {
-                workDetailByConstructorDto.setHomeName(workDetail.getWorking().getOtherHome().getName());
-                workDetailByConstructorDto.setDong(workDetail.getWorking().getOtherHomeDong());
-                workDetailByConstructorDto.setHosu(workDetail.getWorking().getOtherHomeHosu());
-            }
-            if (map.get(worker) == null) {
-                List<WorkDetailByConstructorDto> list = new ArrayList<>();
-                list.add(workDetailByConstructorDto);
-                map.put(worker, list);
-            } else {
-                map.get(worker).add(workDetailByConstructorDto);
+            if(workDetail.getUserConstructor() != null){
+                // 키 값
+                String worker = workDetail.getUserConstructor().getName();
+                // 공통 변수
+                workDetailByConstructorDto.setWorkId(workDetail.getWorking().getId());
+                workDetailByConstructorDto.setWorkDetailId(workDetail.getId());
+                workDetailByConstructorDto.setProductName(workDetail.getWorking().getConstructorProduct().getName());
+                workDetailByConstructorDto.setWorkLevelName(workDetail.getConstructorProductWorkList().getName());
+                workDetailByConstructorDto.setEstimateWorkDate(workDetail.getEstimateWorkDate());
+                workDetailByConstructorDto.setEstimateWorkTime(workDetail.getEstimateWorkTime());
+                workDetailByConstructorDto.setComplete(workDetail.isComplete());
+                // 주소 구분
+                if (workDetail.getWorking().getApartment() != null) {
+                    workDetailByConstructorDto.setHomeName(workDetail.getWorking().getApartment().getName());
+                    workDetailByConstructorDto.setDong(workDetail.getWorking().getApartmentDong());
+                    workDetailByConstructorDto.setHosu(workDetail.getWorking().getApartmentHosu());
+                } else if (workDetail.getWorking().getOtherHome() != null) {
+                    workDetailByConstructorDto.setHomeName(workDetail.getWorking().getOtherHome().getName());
+                    workDetailByConstructorDto.setDong(workDetail.getWorking().getOtherHomeDong());
+                    workDetailByConstructorDto.setHosu(workDetail.getWorking().getOtherHomeHosu());
+                }
+                if (map.get(worker) == null) {
+                    List<WorkDetailByConstructorDto> list = new ArrayList<>();
+                    list.add(workDetailByConstructorDto);
+                    map.put(worker, list);
+                } else {
+                    map.get(worker).add(workDetailByConstructorDto);
+                }
+
+            }else{
+                // 키 값
+                String worker = "미배정 작업";
+                // 공통 변수
+                workDetailByConstructorDto.setWorkId(workDetail.getWorking().getId());
+                workDetailByConstructorDto.setWorkDetailId(workDetail.getId());
+                workDetailByConstructorDto.setProductName(workDetail.getWorking().getConstructorProduct().getName());
+                workDetailByConstructorDto.setWorkLevelName(workDetail.getConstructorProductWorkList().getName());
+                workDetailByConstructorDto.setComplete(workDetail.isComplete());
+                // 주소 구분
+                if (workDetail.getWorking().getApartment() != null) {
+                    workDetailByConstructorDto.setHomeName(workDetail.getWorking().getApartment().getName());
+                    workDetailByConstructorDto.setDong(workDetail.getWorking().getApartmentDong());
+                    workDetailByConstructorDto.setHosu(workDetail.getWorking().getApartmentHosu());
+                } else if (workDetail.getWorking().getOtherHome() != null) {
+                    workDetailByConstructorDto.setHomeName(workDetail.getWorking().getOtherHome().getName());
+                    workDetailByConstructorDto.setDong(workDetail.getWorking().getOtherHomeDong());
+                    workDetailByConstructorDto.setHosu(workDetail.getWorking().getOtherHomeHosu());
+                }
+                if (map.get(worker) == null) {
+                    List<WorkDetailByConstructorDto> list = new ArrayList<>();
+                    list.add(workDetailByConstructorDto);
+                    map.put(worker, list);
+                } else {
+                    map.get(worker).add(workDetailByConstructorDto);
+                }
             }
         }
-
-        // 미배정 태스크
-        List<WorkDetail> unAssignedWorkList = workDetailRepository
-                .findByWorkingConstructorIdAndEstimateWorkDateIsNull(constructorId)
-                .orElseThrow(() -> new NullPointerException("미배정 작업이 없습니다."));
-
-        for (WorkDetail workDetail : unAssignedWorkList) {
-            // 키 값
-            String worker = "미배정 작업";
-            // 공통 변수
-            WorkDetailByConstructorDto workDetailByConstructorDto = new WorkDetailByConstructorDto();
-            workDetailByConstructorDto.setWorkId(workDetail.getWorking().getId());
-            workDetailByConstructorDto.setWorkDetailId(workDetail.getId());
-            workDetailByConstructorDto.setProductName(workDetail.getWorking().getConstructorProduct().getName());
-            workDetailByConstructorDto.setWorkLevelName(workDetail.getConstructorProductWorkList().getName());
-            workDetailByConstructorDto.setComplete(workDetail.isComplete());
-            // 주소 구분
-            if (workDetail.getWorking().getApartment() != null) {
-                workDetailByConstructorDto.setHomeName(workDetail.getWorking().getApartment().getName());
-                workDetailByConstructorDto.setDong(workDetail.getWorking().getApartmentDong());
-                workDetailByConstructorDto.setHosu(workDetail.getWorking().getApartmentHosu());
-            } else if (workDetail.getWorking().getOtherHome() != null) {
-                workDetailByConstructorDto.setHomeName(workDetail.getWorking().getOtherHome().getName());
-                workDetailByConstructorDto.setDong(workDetail.getWorking().getOtherHomeDong());
-                workDetailByConstructorDto.setHosu(workDetail.getWorking().getOtherHomeHosu());
-            }
-            if (map.get(worker) == null) {
-                List<WorkDetailByConstructorDto> list = new ArrayList<>();
-                list.add(workDetailByConstructorDto);
-                map.put(worker, list);
-            } else {
-                map.get(worker).add(workDetailByConstructorDto);
-            }
-        }
-
         return map;
     }
 

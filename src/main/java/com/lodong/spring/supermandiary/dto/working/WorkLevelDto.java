@@ -3,6 +3,8 @@ package com.lodong.spring.supermandiary.dto.working;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 public class WorkLevelDto {
@@ -17,4 +19,5 @@ public class WorkLevelDto {
     private String currentAssignedTask;
     private String currentAssignedTaskId;
     private boolean isFileIn;
+    private List<String> fileNameList = new ArrayList<>();
 }
