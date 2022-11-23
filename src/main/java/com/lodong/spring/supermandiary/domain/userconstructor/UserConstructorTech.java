@@ -5,22 +5,19 @@ import lombok.*;
 
 import javax.persistence.*;
 
-@Entity()
+@Entity
 @Getter @Setter @ToString @Builder
 @AllArgsConstructor @NoArgsConstructor
 @Embeddable
 public class UserConstructorTech {
     @Id
     private String id;
-    @Column(nullable = false)
-    private String userConstructorId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_constructor_id")
+    private UserConstructor userConstructor;
     @Column(nullable = false)
     private String techName;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id",insertable = false, updatable = false)
-    @JsonBackReference
-    private UserConstructor userConstructor;
 
     @PrePersist
     public void prePersist() {

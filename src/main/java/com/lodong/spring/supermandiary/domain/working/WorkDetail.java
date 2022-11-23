@@ -7,6 +7,7 @@ import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
+import java.beans.ConstructorProperties;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -23,15 +24,10 @@ import java.util.List;
 @NamedEntityGraphs(
         @NamedEntityGraph(name = "workDetail-with-all", attributeNodes = {
                 @NamedAttributeNode(value = "working", subgraph = "apartment"),
-                @NamedAttributeNode(value = "constructorProductWorkList", subgraph = "constructorProduct"),
                 @NamedAttributeNode("userConstructor"),
                 @NamedAttributeNode(value = "workFileList", subgraph = "file")
-
         },
                 subgraphs = {
-                        @NamedSubgraph(name = "constructorProduct", attributeNodes = {
-                                @NamedAttributeNode("constructorProduct")
-                        }),
                         @NamedSubgraph(name = "apartment", attributeNodes = {
                                 @NamedAttributeNode("apartment"),
                                 @NamedAttributeNode("otherHome"),
@@ -51,9 +47,6 @@ public class WorkDetail {
     @JoinColumn(name = "work_id")
     private Working working;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "work_level_id")
-    private ConstructorProductWorkList constructorProductWorkList;
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_constructor_id")
     private UserConstructor userConstructor;
     @Column
@@ -68,6 +61,12 @@ public class WorkDetail {
     private LocalTime actualWorkTime;
     @Column
     private boolean isComplete;
+    @Column(nullable = false)
+    private String name;
+    @Column(nullable = false)
+    private int sequence;
+    @Column(nullable = false)
+    private boolean isFileIn;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "workDetail")
     private List<WorkFile> workFileList = new ArrayList<>();

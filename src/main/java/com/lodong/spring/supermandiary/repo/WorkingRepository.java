@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,8 +26,17 @@ public interface WorkingRepository extends JpaRepository<Working, String> {
     Optional<List<Working>> findByConstructorIdAndApartmentHosu(String constructorId,String hosu);
     Optional<List<Working>> findByConstructorIdAndOtherHomeDong(String constructorId,String dong);
     Optional<List<Working>> findByConstructorIdAndOtherHomeHosu(String constructorId,String hosu);
+
+    @EntityGraph(value = "get-estimate-info", type = EntityGraph.EntityGraphType.LOAD)
+    Optional<List<Working>> findByConstructorIdAndCompleteConstructTrue(String constructorId);
+
     @Transactional
     @Modifying
-    @Query(value = "UPDATE UserConstructor u set u.refreshToken =:refreshToken where u.phoneNumber = :phoneNumber")
-    void insertRefreshToken(String refreshToken, String phoneNumber);
+    @Query(value = "UPDATE Working w set w.completeConstruct =true, w.completeConstructDate =:completeDate where w.id = :workingId")
+    void completeWorking(String workingId, LocalDateTime completeDate);
+
+    @Transactional
+    @Modifying
+    @Query(value = "UPDATE Working w set w.completePay=true, w.payMethod =:method, w.completePayDate =:completeDate where w.id = :workingId")
+    void completePaying(String workingId, String method, LocalDateTime completeDate);
 }

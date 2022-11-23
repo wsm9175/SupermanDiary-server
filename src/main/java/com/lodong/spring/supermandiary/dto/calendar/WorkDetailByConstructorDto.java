@@ -9,6 +9,8 @@ import java.time.LocalTime;
 public class WorkDetailByConstructorDto {
     private String workId;
     private String workDetailId;
+    private String workerId;
+    private String workerName;
     private LocalDate estimateWorkDate;
     private LocalTime estimateWorkTime;
     private String workLevelName;

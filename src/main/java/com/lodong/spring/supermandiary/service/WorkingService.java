@@ -1,7 +1,6 @@
 package com.lodong.spring.supermandiary.service;
 
 import com.lodong.spring.supermandiary.domain.Estimate;
-import com.lodong.spring.supermandiary.domain.EstimateDetail;
 import com.lodong.spring.supermandiary.domain.create.RequestOrder;
 import com.lodong.spring.supermandiary.domain.file.WorkFile;
 import com.lodong.spring.supermandiary.domain.userconstructor.AffiliatedInfo;
@@ -9,7 +8,6 @@ import com.lodong.spring.supermandiary.domain.working.Working;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import com.lodong.spring.supermandiary.dto.working.*;
 import com.lodong.spring.supermandiary.repo.AffiliatedInfoRepository;
-import com.lodong.spring.supermandiary.repo.EstimateRepository;
 import com.lodong.spring.supermandiary.repo.WorkingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,11 +20,11 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class WorkingService {
     private final WorkingRepository workingRepository;
     private final AffiliatedInfoRepository affiliatedInfoRepository;
 
+    @Transactional(readOnly = true)
     public HashMap<String, List<WorkApartmentDto>> getWorkList(String constructorId, int siggCode) {
         Constructor constructor = Constructor.builder()
                 .id(constructorId)
@@ -78,6 +76,7 @@ public class WorkingService {
         return workList;
     }
 
+    @Transactional(readOnly = true)
     public List<WorkApartmentDto> findWork(String constructorId, String phoneNumber, String dong, String hosu) {
         //회원
         List<Working> memberWorkingList = null;
@@ -142,7 +141,7 @@ public class WorkingService {
         return workApartmentDtos;
 
     }
-
+    @Transactional(readOnly = true)
     public WorkDetailDto getWorkDetailByWork(String constructorId, String workId) {
         Working working = workingRepository
                 .findByIdAndConstructorId(workId, constructorId)
@@ -177,9 +176,9 @@ public class WorkingService {
         workDetailDto.setRemark(working.getEstimate().getRemark());
         workDetailDto.setCurrentWorkDetail(working.getNowWorkInfo().getWorkDetail().getId());
         // 현재 작업자 및 현재 작업
-        if (working.getNowWorkInfo().getWorkDetail().getConstructorProductWorkList() != null) {
-            workDetailDto.setCurrentWorkLevel(working.getNowWorkInfo().getWorkDetail().getConstructorProductWorkList().getName());
-            workDetailDto.setCurrentWorkLevelId(working.getNowWorkInfo().getWorkDetail().getConstructorProductWorkList().getId());
+        if (working.getNowWorkInfo().getWorkDetail().getName() != null) {
+            workDetailDto.setCurrentWorkLevel(working.getNowWorkInfo().getWorkDetail().getName());
+            workDetailDto.setCurrentWorkLevelId(working.getNowWorkInfo().getWorkDetail().getId());
             workDetailDto.setCurrentWorkNote(working.getNowWorkInfo().getWorkDetail().getNote());
         }
         if (working.getNowWorkInfo().getWorkDetail().getUserConstructor() != null) {
@@ -190,6 +189,7 @@ public class WorkingService {
         return workDetailDto;
     }
 
+    @Transactional(readOnly = true)
     public List<UserConstructorDto> getConstructorMember(String constructorId) {
         List<AffiliatedInfo> affiliatedInfos = affiliatedInfoRepository
                 .findByConstructorId(constructorId)
@@ -207,10 +207,17 @@ public class WorkingService {
         return userConstructorDtoList;
     }
 
-    public List<WorkLevelDto> getWorkLevelList(String constructorId, String workId) {
+    @Transactional(readOnly = true)
+    public WorkLevelDetailDto getWorkLevelList(String constructorId, String workId) {
         Working working = workingRepository
                 .findByIdAndConstructorId(workId, constructorId)
                 .orElseThrow(() -> new NullPointerException("작업이 존재하지 않습니다."));
+
+        WorkLevelDetailDto workLevelDetailDto = new WorkLevelDetailDto();
+        workLevelDetailDto.setIsPayComplete(working.isCompletePay());
+        workLevelDetailDto.setCompleteConstructorDate(working.getCompleteConstructDate());
+        workLevelDetailDto.setIsConstructorComplete(working.isCompleteConstruct());
+        workLevelDetailDto.setCompletePayDate(working.getCompletePayDate());
 
         List<WorkLevelDto> workLevelDtos = new ArrayList<>();
 
@@ -218,21 +225,21 @@ public class WorkingService {
                 .forEach(workDetail -> {
                     WorkLevelDto workLevelDto = new WorkLevelDto();
                     workLevelDto.setId(workDetail.getId());
-                    workLevelDto.setName(workDetail.getConstructorProductWorkList().getName());
+                    workLevelDto.setName(workDetail.getName());
                     workLevelDto.setNote(workDetail.getNote());
                     workLevelDto.setActualDate(workDetail.getActualWorkDate());
                     workLevelDto.setComplete(workDetail.isComplete());
-                    workLevelDto.setSequence(workDetail.getConstructorProductWorkList().getSequence());
+                    workLevelDto.setSequence(workDetail.getSequence());
                     if (workDetail.getUserConstructor() != null) {
                         workLevelDto.setCurrentAssignedTaskManager(workDetail.getUserConstructor().getName());
                         workLevelDto.setCurrentAssignedTaskManagerId(workDetail.getUserConstructor().getId());
                     }
                     if (workDetail.getWorking().getNowWorkInfo().getWorkDetail() != null) {
-                        workLevelDto.setCurrentAssignedTask(workDetail.getWorking().getNowWorkInfo().getWorkDetail().getConstructorProductWorkList().getName());
-                        workLevelDto.setCurrentAssignedTaskId(workDetail.getWorking().getNowWorkInfo().getWorkDetail().getConstructorProductWorkList().getId());
+                        workLevelDto.setCurrentAssignedTask(workDetail.getWorking().getNowWorkInfo().getWorkDetail().getName());
+                        workLevelDto.setCurrentAssignedTaskId(workDetail.getWorking().getNowWorkInfo().getWorkDetail().getId());
                     }
-                    workLevelDto.setFileIn(workDetail.getConstructorProductWorkList().isFileIn());
-                    if (workDetail.getConstructorProductWorkList().isFileIn()) {
+                    workLevelDto.setFileIn(workDetail.isFileIn());
+                    if (workDetail.isFileIn()) {
                         List<String> fileNameList = new ArrayList<>();
                         for (WorkFile workFile : workDetail.getWorkFileList()) {
                             fileNameList.add(workFile.getFileList().getName());
@@ -241,9 +248,12 @@ public class WorkingService {
                     }
                     workLevelDtos.add(workLevelDto);
                 });
-        return workLevelDtos;
+
+        workLevelDetailDto.setWorkDetailList(workLevelDtos);
+        return workLevelDetailDto;
     }
 
+    @Transactional(readOnly = true)
     public EstimateInfoDto getEstimate(String constructorId, String workId) {
         Working working = workingRepository
                 .findByIdAndConstructorId(workId, constructorId)

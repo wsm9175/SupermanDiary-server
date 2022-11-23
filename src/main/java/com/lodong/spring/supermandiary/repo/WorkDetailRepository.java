@@ -1,6 +1,7 @@
 package com.lodong.spring.supermandiary.repo;
 
 import com.lodong.spring.supermandiary.domain.working.WorkDetail;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -13,10 +14,13 @@ import java.util.List;
 import java.util.Optional;
 
 public interface WorkDetailRepository extends JpaRepository<WorkDetail, String> {
+    @Override
+    @EntityGraph(value = "workDetail-with-all", type = EntityGraph.EntityGraphType.LOAD)
+    public Optional<WorkDetail> findById(String id);
     @EntityGraph(value = "workDetail-with-all", type = EntityGraph.EntityGraphType.LOAD)
     public Optional<List<WorkDetail>> findByWorkingConstructorId(String constructorId);
     public Optional<List<WorkDetail>> findByWorkingConstructorIdAndEstimateWorkDateIsNull(String constructorId);
-    public Optional<WorkDetail> findByWorkingIdAndConstructorProductWorkList_Sequence(String id, int sequence);
+    public Optional<WorkDetail> findByWorkingIdAndSequence(String id, int sequence);
 
     @EntityGraph(value = "workDetail-with-all", type = EntityGraph.EntityGraphType.LOAD)
     public Optional<List<WorkDetail>> findByUserConstructorIdAndWorkingConstructorId(String userId, String constructorId);

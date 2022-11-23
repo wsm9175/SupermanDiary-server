@@ -18,6 +18,12 @@ public interface UserConstructorRepository extends JpaRepository<UserConstructor
     @Query(value = "UPDATE UserConstructor u set u.refreshToken =:refreshToken where u.phoneNumber = :phoneNumber")
     void insertRefreshToken(String refreshToken, String phoneNumber);
 
+    @Transactional
+    @Modifying
+    @Query(value = "UPDATE UserConstructor u set u.active =:isActivate where u.id = :userConstructorId")
+    void updateUserConstructorActivate(String userConstructorId, boolean isActivate);
+
+
     @NotNull
     @EntityGraph(value = "userConstructor-with-workDetail", type = EntityGraph.EntityGraphType.LOAD)
     UserConstructor getById(@NotNull String id);

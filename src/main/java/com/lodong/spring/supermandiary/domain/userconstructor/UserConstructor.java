@@ -1,5 +1,6 @@
 package com.lodong.spring.supermandiary.domain.userconstructor;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.lodong.spring.supermandiary.domain.working.WorkDetail;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
@@ -13,7 +14,6 @@ import java.util.stream.Collectors;
 
 @NamedEntityGraph(name = "userConstructor-with-workDetail", attributeNodes = {
         @NamedAttributeNode(value = "workDetails", subgraph = "working"),
-        @NamedAttributeNode(value = "workDetails", subgraph = "working"),
         },
         subgraphs = @NamedSubgraph(name = "working", attributeNodes = {
                 @NamedAttributeNode("working")
@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 @Entity
 @Getter
 @Setter
-@ToString
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -32,7 +31,6 @@ public class UserConstructor implements UserDetails {
     private String id;
     @Column(nullable = false)
     private String pw;
-
     @Column(nullable = false)
     private String name;
     @Column(nullable = false, unique = true)
@@ -64,6 +62,10 @@ public class UserConstructor implements UserDetails {
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "userConstructor")
     private List<WorkDetail> workDetails = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "userConstructor")
+    private List<UserConstructorTech> userConstructorTeches = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {

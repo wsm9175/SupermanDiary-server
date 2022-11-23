@@ -7,15 +7,13 @@ import com.lodong.spring.supermandiary.domain.OtherHome;
 import com.lodong.spring.supermandiary.domain.usercustomer.UserCustomer;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import com.lodong.spring.supermandiary.domain.constructor.ConstructorProduct;
-import jdk.jfr.Name;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
-
 
 @Slf4j @Entity @ToString
 @Builder @Getter @Setter
@@ -49,10 +47,15 @@ public class Working {
     private Estimate estimate;
 
     @Column(nullable = false)
-    private boolean isCompleteConstruct;
+    private boolean completeConstruct;
+    @Column
+    private LocalDateTime completeConstructDate;
+    @Column
+    private LocalDateTime completePayDate;
     @Column(nullable = false)
-    private boolean isCompletePay;
-
+    private boolean completePay;
+    @Column
+    private String payMethod;
     //아파트, 기타건물 나뉨
     //아파트
     @ManyToOne(fetch = FetchType.LAZY)

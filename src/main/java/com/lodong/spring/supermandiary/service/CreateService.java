@@ -33,10 +33,6 @@ public class CreateService {
 
     private final String STATUS_DELETE = "삭제";
     private final String STATUS_COMPLETE = "처리완료";
-    private final String STATUS_WORKING_COMPLETE = "완료";
-    private final String STATUS_DEFERE = "보류";
-    private final String STATUS_WORKING = "작업중";
-    private final String STATUS_UN_ASSIGNED = "미배정";
 
     public List<RequestOrderDto> getRequestOrderList(String token) throws NullPointerException {
         Constructor constructor = Constructor.builder()
@@ -205,8 +201,8 @@ public class CreateService {
                         .constructor(constructor)
                         .constructorProduct(constructorProduct)
                         .estimate(estimate)
-                        .isCompleteConstruct(false)
-                        .isCompletePay(false)
+                        .completeConstruct(false)
+                        .completePay(false)
                         .apartment(apartment)
                         .apartmentDong(estimate.getApartment_dong())
                         .apartmentHosu(estimate.getApartment_hosu())
@@ -240,8 +236,8 @@ public class CreateService {
                         .constructor(constructor)
                         .constructorProduct(constructorProduct)
                         .estimate(estimate)
-                        .isCompleteConstruct(false)
-                        .isCompletePay(false)
+                        .completeConstruct(false)
+                        .completePay(false)
                         .otherHome(otherHome)
                         .otherHomeDong(sendEstimateDto.getOtherHomeDong())
                         .otherHomeHosu(sendEstimateDto.getOtherHomeHosu())
@@ -293,7 +289,9 @@ public class CreateService {
                 WorkDetail workDetail = WorkDetail.builder()
                         .id(UUID.randomUUID().toString())
                         .working(finalWorking)
-                        .constructorProductWorkList(constructorProductWorkList)
+                        .name(constructorProductWorkList.getName())
+                        .sequence(constructorProductWorkList.getSequence())
+                        .isFileIn(constructorProductWorkList.isFileIn())
                         .isComplete(false)
                         .build();
                 workDetails.add(workDetail);
@@ -301,7 +299,7 @@ public class CreateService {
 
             WorkDetail firstWorkDetail = null;
             for(WorkDetail workDetail:workDetails){
-                if(workDetail.getConstructorProductWorkList().getSequence() == 1){
+                if(workDetail.getSequence() == 1){
                     firstWorkDetail = workDetail;
                     break;
                 }

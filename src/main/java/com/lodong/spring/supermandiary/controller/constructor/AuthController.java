@@ -72,7 +72,7 @@ public class AuthController {
             log.info(userConstructorTechDTO.toString());
             UserConstructorTech userConstructorTech = UserConstructorTech.builder()
                     .id(UUID.randomUUID().toString())
-                    .userConstructorId(userConstructorEncode.getId())
+                    .userConstructor(userConstructorEncode)
                     .techName(userConstructorTechDTO.getName())
                     .build();
             userConstructorTechList.add(userConstructorTech);
@@ -205,8 +205,7 @@ public class AuthController {
     }
 
     @GetMapping("/send-sms")
-    public @ResponseBody
-    String sendSMS(String phoneNumber) {
+    public @ResponseBody String sendSMS(String phoneNumber) {
         Random rand = new Random();
         String numstr = "";
         for (int i = 0; i < 6; i++) {
@@ -261,6 +260,8 @@ public class AuthController {
         System.out.println(tokenInfo.toString());
         return getResponseMessage(statusEnum, message, tokenInfo);
     }
+
+    
 
     private TokenInfo loginAfterRegister(UserConstructor userConstructor) throws Exception {
         TokenInfo tokenInfo = authService.auth(userConstructor);

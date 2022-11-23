@@ -7,9 +7,13 @@ import javax.persistence.*;
 
 @NamedEntityGraph(
         name = "get-constructor-id", attributeNodes = {
-        @NamedAttributeNode(value = "userConstructor"),
+        @NamedAttributeNode(value = "userConstructor", subgraph = "userConstructorTeches"),
         @NamedAttributeNode("constructor"),
-})
+        },
+        subgraphs = @NamedSubgraph(name = "userConstructorTeches", attributeNodes = {
+            @NamedAttributeNode("userConstructorTeches")
+        })
+)
 
 @Entity
 @Getter

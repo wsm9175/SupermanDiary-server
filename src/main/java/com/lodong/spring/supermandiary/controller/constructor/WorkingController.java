@@ -153,10 +153,10 @@ public class WorkingController {
             return getResponseMessage(statusEnum, message);
         }
         try {
-            List<WorkLevelDto> workLevelDtos = workingService.getWorkLevelList(constructorId, workId);
+            WorkLevelDetailDto workLevelDetailDto = workingService.getWorkLevelList(constructorId, workId);
             StatusEnum statusEnum = StatusEnum.OK;
             String message = "작업 진행";
-            return getResponseMessage(statusEnum, message, workLevelDtos);
+            return getResponseMessage(statusEnum, message, workLevelDetailDto);
         } catch (NullPointerException e) {
             e.printStackTrace();
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;

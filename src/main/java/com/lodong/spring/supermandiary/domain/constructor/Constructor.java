@@ -1,15 +1,24 @@
 package com.lodong.spring.supermandiary.domain.constructor;
 
+import com.lodong.spring.supermandiary.domain.userconstructor.AffiliatedInfo;
 import lombok.*;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.PrePersist;
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Getter @Setter @ToString @Builder
-@AllArgsConstructor @NoArgsConstructor
+@Getter
+@Setter
+@ToString
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+
+@NamedEntityGraph(name = "get-all-data", attributeNodes = {
+        @NamedAttributeNode(value = "constructorProducts"),
+        @NamedAttributeNode(value = "affiliatedInfoList")
+})
 public class Constructor {
     @Id
     private String id;
@@ -26,6 +35,23 @@ public class Constructor {
     @Column(nullable = false)
     private boolean webAdminActive;
 
+    @Column
+    private String callingNumber;
+    @Column(nullable = false)
+    private boolean isCertificatePhoneNumber;
+    @Column
+    private String bank;
+    private String bankAccount;
+    private String payTemplate;
+    private String orderMethod;
+    private String placeOrder;
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "constructor")
+    private List<ConstructorProduct> constructorProducts = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "constructor")
+    private List<AffiliatedInfo> affiliatedInfoList = new ArrayList<>();
+
     @PrePersist
     public void prePersist() {
 
@@ -40,7 +66,7 @@ public class Constructor {
         this.webAdminActive = webAdminActive;
     }
 
-    public static Constructor getPublicProfile(Constructor constructor){
+    public static Constructor getPublicProfile(Constructor constructor) {
         return new Constructor(constructor.getId(), constructor.getName(), constructor.isPayActivation(), constructor.isOrderManage(), constructor.isPayManage(), constructor.isWebAdminActive());
     }
 }

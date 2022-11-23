@@ -3,6 +3,7 @@ package com.lodong.spring.supermandiary.controller.constructor;
 import com.lodong.spring.supermandiary.domain.userconstructor.AffiliatedInfo;
 import com.lodong.spring.supermandiary.dto.calendar.FilterDataDto;
 import com.lodong.spring.supermandiary.dto.calendar.WorkDetailByConstructorDto;
+import com.lodong.spring.supermandiary.dto.calendar.WorkListDto;
 import com.lodong.spring.supermandiary.jwt.JwtTokenProvider;
 import com.lodong.spring.supermandiary.responseentity.StatusEnum;
 import com.lodong.spring.supermandiary.service.CalendarService;
@@ -46,15 +47,15 @@ public class CalendarController {
             return getResponseMessage(statusEnum, message);
         }
         try {
-            HashMap<String, List<WorkDetailByConstructorDto>> map = calendarService
+            WorkListDto workListDto = calendarService
                     .getWorkList(constructorId);
             StatusEnum statusEnum = StatusEnum.OK;
             String message = "작업 목록";
-            return getResponseMessage(statusEnum, message, map);
-        } catch (Exception e) {
+            return getResponseMessage(statusEnum, message, workListDto);
+        } catch (NullPointerException e) {
             e.printStackTrace();
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
-            String message = "서버 에러 발생" + e.getMessage();
+            String message = e.getMessage();
             return getResponseMessage(statusEnum, message);
         }
     }
@@ -90,16 +91,8 @@ public class CalendarController {
                                                 String workDetailId,
                                                 String note) {
         log.info("note : " + note);
-        String constructorId;
         try {
-            constructorId = getConstructorId(token);
-        } catch (NullPointerException e) {
-            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
-            String message = "속한 시공사가 없습니다.";
-            return getResponseMessage(statusEnum, message);
-        }
-        try {
-            calendarService.allocateWorkDetail(constructorId, workDetailId, date, time, workerId, note);
+            calendarService.allocateWorkDetail(workDetailId, date, time, workerId, note);
             StatusEnum statusEnum = StatusEnum.OK;
             String message = "작업 할당 성공";
             return getResponseMessage(statusEnum, message, null);

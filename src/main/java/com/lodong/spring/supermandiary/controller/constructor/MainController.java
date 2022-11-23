@@ -59,9 +59,8 @@ public class MainController {
     @PostMapping("/complete/work")
     public ResponseEntity<?> completeWork(@RequestPart(value = "images", required = false) List<MultipartFile> files,
                                           @RequestPart(value = "workDetail") String workDetail){
-        log.info("file size : " + files.size());
         try{
-            mainService.completeWork(files,workDetail);
+            mainService.completeWork(files,workDetail.replace("\"", ""));
             StatusEnum statusEnum = StatusEnum.OK;
             String message = workDetail + " 작업 완료 성공";
             return getResponseMessage(statusEnum, message, null);
@@ -76,6 +75,12 @@ public class MainController {
             String message = "작업 완료 실패 " + e.getMessage();
             return getResponseMessage(statusEnum, message);
         }
+    }
+
+    @PutMapping("/complete/working/pay")
+    public ResponseEntity<?> completePay(String workId, String method){
+        mainService.completeWorkingPay(workId, method);
+        return getResponseMessage(StatusEnum.OK, "결제완료", null);
     }
 
     private String getConstructorId(String userUuid) throws NullPointerException {

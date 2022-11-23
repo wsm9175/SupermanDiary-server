@@ -7,12 +7,16 @@ import lombok.*;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
+@NamedEntityGraph(
+        name = "get-all-with", attributeNodes = {
+            @NamedAttributeNode("constructor")
+})
+
 @Entity @Getter @Setter @ToString
 @Builder @AllArgsConstructor @NoArgsConstructor
 public class Invite {
     @Id
     private String id;
-    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "constructor_id")
     private Constructor constructor;
@@ -21,6 +25,7 @@ public class Invite {
     @Column(nullable = false)
     private String phoneNumber;
     @Column(nullable = false)
+    private boolean signComplete;
+    @Column(nullable = false)
     private LocalDateTime createAt;
-
 }

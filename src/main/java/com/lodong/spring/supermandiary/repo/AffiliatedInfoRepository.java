@@ -9,7 +9,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface AffiliatedInfoRepository extends JpaRepository<AffiliatedInfo, Integer> {
-    @EntityGraph(value = "get-constructor-id", type = EntityGraph.EntityGraphType.LOAD)
+    @EntityGraph(value = "get-constructor-id", type = EntityGraph.EntityGraphType.FETCH)
     Optional<AffiliatedInfo> findByUserConstructor(UserConstructor userConstructor);
+    @EntityGraph(value = "get-constructor-id", type = EntityGraph.EntityGraphType.FETCH)
     Optional<List<AffiliatedInfo>> findByConstructorId(String constructorId);
+
 }
