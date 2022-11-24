@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import javax.transaction.Transactional;
+import java.util.List;
 import java.util.Optional;
 
 public interface UserConstructorRepository extends JpaRepository<UserConstructor, String> {
@@ -18,11 +19,10 @@ public interface UserConstructorRepository extends JpaRepository<UserConstructor
     @Query(value = "UPDATE UserConstructor u set u.refreshToken =:refreshToken where u.phoneNumber = :phoneNumber")
     void insertRefreshToken(String refreshToken, String phoneNumber);
 
-    @Transactional
+  /*  @Transactional
     @Modifying
-    @Query(value = "UPDATE UserConstructor u set u.active =:isActivate where u.id = :userConstructorId")
-    void updateUserConstructorActivate(String userConstructorId, boolean isActivate);
-
+    @Query(value = "UPDATE UserConstructor u set u.active =:isActivate, u.roles =:roles  where u.id = :userConstructorId")
+    void updateUserConstructorActivate(String userConstructorId, boolean isActivate, List<T> roles);*/
 
     @NotNull
     @EntityGraph(value = "userConstructor-with-workDetail", type = EntityGraph.EntityGraphType.LOAD)

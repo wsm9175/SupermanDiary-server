@@ -2,6 +2,7 @@ package com.lodong.spring.supermandiary.config;
 
 import com.lodong.spring.supermandiary.jwt.JwtAuthenticationFilter;
 import com.lodong.spring.supermandiary.jwt.JwtTokenProvider;
+import com.lodong.spring.supermandiary.responseentity.PermissionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +19,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -29,9 +29,9 @@ public class SecurityConfig {
                 .authorizeRequests()
                 /*.antMatchers("/rest/v1/**").permitAll()*/
                 .antMatchers("/rest/v1/auth/**").permitAll()
-                .antMatchers("rest/v1/admin/**").hasRole("ADMIN")
-                .antMatchers("/rest/v1/**").hasRole("USER") //USER 권한이 있어야 요청할 수 있다는 설정이다.
-                .antMatchers("/rest/v1/**").hasRole("ADMIN") //ADMIN 권한이 있어야 요청할 수 있다는 설정이다.
+                .antMatchers("rest/v1/admin/**").hasRole(PermissionEnum.ADMIN.name())
+                .antMatchers("/rest/v1/**").hasRole(PermissionEnum.USER.name()) //USER 권한이 있어야 요청할 수 있다는 설정이다.
+                .antMatchers("/rest/v1/**").hasRole(PermissionEnum.ADMIN.name()) //ADMIN 권한이 있어야 요청할 수 있다는 설정이다.
                 .anyRequest().authenticated()//이 밖에 모든 요청에 대해서 인증을 필요로 한다는 설정이다.
                 .and()
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);

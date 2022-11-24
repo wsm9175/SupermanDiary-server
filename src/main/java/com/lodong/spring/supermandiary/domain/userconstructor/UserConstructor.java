@@ -20,6 +20,11 @@ import java.util.stream.Collectors;
         })
 )
 
+@NamedEntityGraph(name = "userConstructor-with-holiday", attributeNodes = {
+        @NamedAttributeNode(value = "userConstructorHolidayList")
+    }
+)
+
 @Entity
 @Getter
 @Setter
@@ -66,6 +71,9 @@ public class UserConstructor implements UserDetails {
     @JsonIgnore
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "userConstructor")
     private List<UserConstructorTech> userConstructorTeches = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "userConstructor")
+    private List<UserConstructorHoliday> userConstructorHolidayList = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {

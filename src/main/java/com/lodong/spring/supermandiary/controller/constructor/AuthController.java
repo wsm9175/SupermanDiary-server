@@ -11,6 +11,7 @@ import com.lodong.spring.supermandiary.dto.address.AddressDTO;
 import com.lodong.spring.supermandiary.dto.auth.ConstructorIdDTO;
 import com.lodong.spring.supermandiary.dto.jwt.TokenRequestDTO;
 import com.lodong.spring.supermandiary.jwt.TokenInfo;
+import com.lodong.spring.supermandiary.responseentity.PermissionEnum;
 import com.lodong.spring.supermandiary.responseentity.StatusEnum;
 import com.lodong.spring.supermandiary.service.*;
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +64,7 @@ public class AuthController {
                 .agreeTerm(user.isAgreeTerm())
                 .ageGroup(user.getAgeGroup())
                 .career(user.getCareer())
-                .roles(Collections.singletonList("USER"))
+                .roles(Collections.singletonList(PermissionEnum.USER.name()))
                 .sex(user.getSex())
                 .build();
         List<UserConstructorTech> userConstructorTechList = new ArrayList<>();
@@ -132,7 +133,7 @@ public class AuthController {
                 .ageGroup(user.getAgeGroup())
                 .career(user.getCareer())
                 .sex(user.getSex())
-                .roles(Collections.singletonList("ADMIN"))
+                .roles(Collections.singletonList(PermissionEnum.USER.name()))
                 .build();
 
         UserConstructor userConstructorForLogin = UserConstructor.builder()

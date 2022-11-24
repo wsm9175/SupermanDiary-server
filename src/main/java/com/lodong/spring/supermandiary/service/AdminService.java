@@ -9,6 +9,8 @@ import com.lodong.spring.supermandiary.domain.userconstructor.UserConstructorTec
 import com.lodong.spring.supermandiary.domain.working.Working;
 import com.lodong.spring.supermandiary.dto.admin.*;
 import com.lodong.spring.supermandiary.repo.*;
+import com.lodong.spring.supermandiary.responseentity.PermissionEnum;
+import edu.emory.mathcs.backport.java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,7 +32,6 @@ public class AdminService {
     private final InviteRepository inviteRepository;
     private final AffiliatedInfoRepository affiliatedInfoRepository;
     private final UserConstructorRepository userConstructorRepository;
-
     private final WorkingRepository workingRepository;
 
     @Transactional(readOnly = true)
@@ -163,7 +165,7 @@ public class AdminService {
             workerInfoDto.setPhoneNumber(userConstructor.getPhoneNumber());
             List<WorkerTechDto> workerTechDtoList = new ArrayList<>();
             //작업자 기술 목록
-            log.info("userConsturctor tech size : "+userConstructor.getUserConstructorTeches().size());
+            log.info("userConsturctor tech size : " + userConstructor.getUserConstructorTeches().size());
             userConstructor.getUserConstructorTeches()
                     .stream()
                     .map(UserConstructorTech::getTechName)
@@ -179,43 +181,47 @@ public class AdminService {
         workManageDto.setWorkerInfoDtoList(workerInfoDtoList);
         return workManageDto;
     }
+
     @Transactional
-    public void controlWorkerActivation(String userId, boolean isActivate){
+    public void controlWorkerActivation(String userId, boolean isActivate) {
         UserConstructor userConstructor = userConstructorRepository
                 .findById(userId)
-                .orElseThrow(()->new NullPointerException("해당 유저는 존재하지 않습니다."));
-        userConstructorRepository.updateUserConstructorActivate(userId, isActivate);
+                .orElseThrow(()-> new NullPointerException("해당 작업자는 존재하지 않습니다."));
+        userConstructor.getRoles().remove(0);
+        userConstructor.getRoles().add(isActivate ? PermissionEnum.USER.name() : PermissionEnum.SUSPENDMEBER.name());
+        userConstructorRepository.save(userConstructor);
     }
 
     @Transactional
-    public void activatePayManage(String constructorId, boolean isActivate){
+    public void activatePayManage(String constructorId, boolean isActivate) {
         constructorRepository.updatePayManage(constructorId, isActivate);
     }
 
     @Transactional
-    public void activateOrderManage(String constructorId, boolean isActivate){
+    public void activateOrderManage(String constructorId, boolean isActivate) {
         constructorRepository.updateOrderManage(constructorId, isActivate);
     }
+
     @Transactional
-    public void payInfoUpdate(String constructorId, String bank, String bankAccount){
+    public void payInfoUpdate(String constructorId, String bank, String bankAccount) {
         constructorRepository.updatePayInfo(constructorId, bank, bankAccount);
     }
 
     @Transactional
-    public void updateCallingNumber(String constructorId, String phoneNumber){
+    public void updateCallingNumber(String constructorId, String phoneNumber) {
         constructorRepository.updateCallingNumber(constructorId, phoneNumber);
     }
 
     @Transactional
-    public void updatePayTemplate(String constructorId,String template){
+    public void updatePayTemplate(String constructorId, String template) {
         constructorRepository.updatePayTemplate(constructorId, template);
     }
 
     @Transactional(readOnly = true)
-    public List<SalesDto> getSales(String constructorId){
+    public List<SalesDto> getSales(String constructorId) {
         List<Working> workings = workingRepository
                 .findByConstructorIdAndCompleteConstructTrue(constructorId)
-                .orElseThrow(()-> new NullPointerException("매출이 존재하지 않습니다."));
+                .orElseThrow(() -> new NullPointerException("매출이 존재하지 않습니다."));
 
         List<SalesDto> salesDtoList = new ArrayList<>();
         workings.stream().forEach(working -> {
