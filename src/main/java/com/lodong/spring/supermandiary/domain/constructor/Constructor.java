@@ -46,6 +46,10 @@ public class Constructor {
     private String orderMethod;
     private String placeOrder;
 
+    @Column(nullable = false)
+    private String businessNumber;
+    private int employeeNumber;
+
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "constructor")
     private List<ConstructorProduct> constructorProducts = new ArrayList<>();
 

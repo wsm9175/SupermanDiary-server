@@ -27,5 +27,10 @@ public class RequestOrderDto {
     private LocalDate requestConstructorDate;
     private boolean isConfirmationConstructorDate;
 
-    private List<ChoiceProductDto> choiceProducts;
+    private ChoiceProductDto choiceProducts;
+
+    private String rejectMessage;
+
+    //상태가 반려인 경우 해당 값이 존재
+    private RejectEstimateDTO rejectEstimateInfo;
 }

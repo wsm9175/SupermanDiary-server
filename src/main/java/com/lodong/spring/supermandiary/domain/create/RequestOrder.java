@@ -2,14 +2,17 @@ package com.lodong.spring.supermandiary.domain.create;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.lodong.spring.supermandiary.domain.Apartment;
+import com.lodong.spring.supermandiary.domain.Estimate;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import com.lodong.spring.supermandiary.domain.OtherHome;
+import com.lodong.spring.supermandiary.domain.constructor.ConstructorProduct;
 import com.lodong.spring.supermandiary.domain.usercustomer.UserCustomer;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Slf4j
 @Entity
@@ -19,6 +22,15 @@ import java.time.LocalDate;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+
+@NamedEntityGraph( name = "get-all-with-request_order", attributeNodes = {
+        @NamedAttributeNode(value = "constructor"),
+        @NamedAttributeNode(value = "customer"),
+        @NamedAttributeNode(value = "apartment"),
+        @NamedAttributeNode(value = "apartment"),
+        @NamedAttributeNode(value = "otherHome")
+}
+)
 
 public class RequestOrder {
     @Id
@@ -41,7 +53,7 @@ public class RequestOrder {
     private String dong;
     @Column(nullable = true)
     private String hosu;
-    @Column(nullable = false)
+    @Column
     private String note;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "other_home_id")
@@ -66,9 +78,21 @@ public class RequestOrder {
     private boolean isConfirmationConstruct;
     @Column(nullable = false)
     private boolean isCashReceipt;
+    @Column(nullable = true)
+    private boolean cashReceiptPurpose;
+    @Column(nullable = true)
+    private String cashReceiptPhoneNumber;
+    @Column
+    private String rejectMessage;
+    @Column(nullable = false)
+    private String phoneNumber;
+    @Column(nullable = false)
+    private LocalDateTime createAt;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id")
+    private ConstructorProduct constructorProduct;
 
-    @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "requestOrder")
-    private RequestOrderProduct requestOrderProduct;
+    private Estimate estimate;
 
 }

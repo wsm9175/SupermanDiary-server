@@ -1,14 +1,18 @@
 package com.lodong.spring.supermandiary.service.main;
 
+import com.lodong.spring.supermandiary.domain.constructor.ConstructorAlarm;
 import com.lodong.spring.supermandiary.domain.file.FileList;
 import com.lodong.spring.supermandiary.domain.file.WorkFile;
+import com.lodong.spring.supermandiary.domain.userconstructor.AffiliatedInfo;
+import com.lodong.spring.supermandiary.domain.userconstructor.UserConstructor;
+import com.lodong.spring.supermandiary.domain.userconstructor.UserConstructorTech;
 import com.lodong.spring.supermandiary.domain.working.NowWorkInfo;
 import com.lodong.spring.supermandiary.domain.working.WorkDetail;
+import com.lodong.spring.supermandiary.dto.main.AlarmDTO;
+import com.lodong.spring.supermandiary.dto.main.MyInfoDTO;
 import com.lodong.spring.supermandiary.dto.main.MyWorkDto;
-import com.lodong.spring.supermandiary.repo.NowWorkRepository;
-import com.lodong.spring.supermandiary.repo.UserConstructorRepository;
-import com.lodong.spring.supermandiary.repo.WorkDetailRepository;
-import com.lodong.spring.supermandiary.repo.WorkingRepository;
+import com.lodong.spring.supermandiary.dto.main.ReadAllAlarmDTO;
+import com.lodong.spring.supermandiary.repo.*;
 import com.lodong.spring.supermandiary.repo.file.FileRepository;
 import com.lodong.spring.supermandiary.util.DateUtil;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -33,11 +35,15 @@ public class MainService {
     private final UserConstructorRepository userConstructorRepository;
     private final WorkingRepository workingRepository;
 
-    private final String STORAGE_ROOT_PATH = "/home/lodong/TestStorage/";
+    //private final String STORAGE_ROOT_PATH = "/home/lodong/TestStorage/";
+    private final String STORAGE_ROOT_PATH = "/storage/";
     private final String File_PATH = "work-file/";
 
     private final FileRepository fileRepository;
     private final NowWorkRepository nowWorkRepository;
+    private final RequestOrderRepository requestOrderRepository;
+    private final ConstructorAlarmRepository constructorAlarmRepository;
+    private final AffiliatedInfoRepository affiliatedInfoRepository;
 
     @Transactional(readOnly = true)
     public List<MyWorkDto> getMyWork(String userUuid, String constructorId) {
@@ -51,7 +57,7 @@ public class MainService {
             String workDetailId = workDetail.getId();
             String workLevel = workDetail.getName();
             String workLevelId = workDetail.getId();
-            String productName = workDetail.getWorking().getConstructorProduct().getName();
+            String productName = workDetail.getWorking().getConstructorProduct().getProduct().getName();
             LocalDate estimateWorkDate = workDetail.getEstimateWorkDate();
             LocalTime estimateWorkTime = workDetail.getEstimateWorkTime();
             boolean isInFileIn = workDetail.isFileIn();
@@ -96,10 +102,10 @@ public class MainService {
                 .orElse(null);
 
         //만약 다음 sequence가 없다면 큰 작업은 완료된 셈
-        if(nextWork != null){
+        if (nextWork != null) {
             nowWorkInfo.setWorkDetail(nextWork);
             nowWorkRepository.save(nowWorkInfo);
-        }else{
+        } else {
             workingRepository.completeWorking(workId, DateUtil.getNowDateTime());
         }
     }
@@ -138,10 +144,56 @@ public class MainService {
         }
         completeWorkNoFile(workDetailId);
     }
+
     @Transactional
-    public void completeWorkingPay(String workId, String method){
+    public void completeWorkingPay(String workId, String method) {
         workingRepository.completePaying(workId, method, DateUtil.getNowDateTime());
     }
+
+    @Transactional(readOnly = true)
+    public List<AlarmDTO> getAlarmList(String uuid) {
+        List<ConstructorAlarm> constructorAlarmList = constructorAlarmRepository.findByConstructor_IdAndIsReadAlarm(uuid, false)
+                .orElseGet(Collections::emptyList);
+        List<AlarmDTO> alarmDTOS = new ArrayList<>();
+        constructorAlarmList.forEach(userCustomerAlarm -> {
+            AlarmDTO alarmDTO = new AlarmDTO(userCustomerAlarm.getId(), userCustomerAlarm.getKind(), userCustomerAlarm.getContent(), "해당 견적서는 삭제되었습니다.", userCustomerAlarm.getCreateAt());
+            requestOrderRepository.findById(userCustomerAlarm.getContent()).ifPresent(requestOrder -> {
+                String homeName = requestOrder.getApartment() != null ? requestOrder.getApartment().getName() : requestOrder.getOtherHome().getName();
+                alarmDTO.setContent(homeName);
+            });
+            alarmDTOS.add(alarmDTO);
+        });
+        return alarmDTOS;
+    }
+
+    @Transactional
+    public void readAlarm(String alarmId) throws NullPointerException {
+        constructorAlarmRepository.findById(alarmId)
+                .orElseThrow(() -> new NullPointerException("해당 알림은 존재하지 않습니다."));
+
+        constructorAlarmRepository.updateReadAlarm(true, alarmId);
+    }
+
+    @Transactional(readOnly = true)
+    public MyInfoDTO getMyInfo(String myUuid) throws NullPointerException {
+        UserConstructor userConstructor = userConstructorRepository.findById(myUuid).orElseThrow(() -> new NullPointerException("유저 정보를 조회할 수 없습니다."));
+        AffiliatedInfo affiliatedInfo = affiliatedInfoRepository.findByUserConstructor(userConstructor).orElse(null);
+        List<String> techList = Optional.ofNullable(userConstructor.getUserConstructorTeches()).orElseGet(Collections::emptyList).stream().map(UserConstructorTech::getTechName).toList();
+        if (affiliatedInfo == null) {
+            return new MyInfoDTO(userConstructor.getName(), userConstructor.getPhoneNumber(), userConstructor.getEmail(), userConstructor.getCareer(), null, techList, userConstructor.isActive());
+        } else{
+            return new MyInfoDTO(userConstructor.getName(), userConstructor.getPhoneNumber(), userConstructor.getEmail(), userConstructor.getCareer(), affiliatedInfo.getConstructor().getName(), techList, userConstructor.isActive());
+        }
+    }
+
+    @Transactional
+    public void readAllAlarm(ReadAllAlarmDTO readAllAlarmDTOS){
+        for(String alarmId : readAllAlarmDTOS.getAlarmList()){
+            constructorAlarmRepository.updateReadAlarm(true, alarmId);
+        }
+    }
+
+
 
     private void saveFile(MultipartFile file, String storage) throws IOException {
         File saveFile = new File(storage);

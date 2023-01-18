@@ -1,9 +1,11 @@
 package com.lodong.spring.supermandiary.dto.admin;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.util.List;
 
+@AllArgsConstructor
 @Data
 public class WorkerInfoDto {
     private String workerId;

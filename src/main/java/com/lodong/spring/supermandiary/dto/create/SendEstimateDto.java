@@ -1,13 +1,18 @@
 package com.lodong.spring.supermandiary.dto.create;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
+import javax.persistence.Column;
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
 public class SendEstimateDto {
     //회원용
     private String requestOrderId;
+    //회원 - 대면
+    private String customerId;
 
     //비회원용
     private String apartmentCode;
@@ -21,6 +26,13 @@ public class SendEstimateDto {
     private String otherHomeType;
     private String name;
     private String phoneNumber;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
+    private LocalDate liveInDate;
+    private boolean isConfirmationLiveIn;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
+    private LocalDate requestConstructDate;
+    private boolean isConfirmationConstruct;
+    private boolean isCashReceipt;
 
     //공통
     private String productId;

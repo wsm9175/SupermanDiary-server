@@ -6,6 +6,7 @@ import com.lodong.spring.supermandiary.domain.file.FileList;
 import com.lodong.spring.supermandiary.domain.userconstructor.AffiliatedInfo;
 import com.lodong.spring.supermandiary.domain.userconstructor.UserConstructor;
 import com.lodong.spring.supermandiary.domain.userconstructor.UserConstructorTech;
+import com.lodong.spring.supermandiary.domain.usercustomer.UserCustomer;
 import com.lodong.spring.supermandiary.dto.address.AddressDTO;
 import com.lodong.spring.supermandiary.dto.jwt.TokenRequestDTO;
 import com.lodong.spring.supermandiary.jwt.TokenInfo;
@@ -38,6 +39,7 @@ public class AuthService {
 
     private final ConstructorTechDetailRepository constructorTechDetailRepository;
     private final UserConstructorTechRepository userConstructorTechRepository;
+    private final UserCustomerRepository userCustomerRepository;
     private final SaveFileService saveFileService;
     private final AddressService addressService;
 
@@ -96,6 +98,7 @@ public class AuthService {
         return tokenInfo;
     }
 
+
     @Transactional
     public TokenInfo reissue(TokenRequestDTO tokenRequestDTO) throws ValidationException, NullPointerException {
         // 만료된 refresh token 에러
@@ -129,15 +132,16 @@ public class AuthService {
         return tokenInfo;
     }
 
-    public boolean isDuplicated(String phoneNumber) {
-        return userConstructorRepository.existsByPhoneNumber(phoneNumber);
+    public boolean isDuplicateBusinessNumber(String businessNumber){
+        return constructorRepository.existsByBusinessNumber(businessNumber);
     }
 
-    public boolean isDuplicatedConstructor(String id) {
-        return userConstructorRepository.existsById(id);
+    public boolean isDuplicated(String phoneNumber) {
+        return userConstructorRepository.existsByPhoneNumber(phoneNumber);
     }
 
     public void insertRefreshToken(String refreshToken, String phoneNumber) {
         userConstructorRepository.insertRefreshToken(refreshToken, phoneNumber);
     }
+
 }

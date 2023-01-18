@@ -35,14 +35,13 @@ public class CalendarService {
         List<WorkDetail> workDetailList = workDetailRepository
                 .findByWorkingConstructorId(constructorId)
                 .orElse(new ArrayList<>());
-        List<WorkerFilterDto> workerList = getWorkerList(constructorId);
+        List<WorkerWithHolidayDto> workerList = getWorkerList(constructorId);
         if(workDetailList.size()==0 && workerList.size() == 0){
             throw new NullPointerException("작업자 및 작업이 없음");
         }
 
         WorkListDto workListDto = new WorkListDto();
         List<WorkDetailByConstructorDto> workDetailByConstructorDtoList = new ArrayList<>();
-
         workListDto.setWorkerList(workerList);
 
         for (WorkDetail workDetail : workDetailList) {
@@ -53,7 +52,7 @@ public class CalendarService {
                 workDetailByConstructorDto.setWorkDetailId(workDetail.getId());
                 workDetailByConstructorDto.setWorkerId(workDetail.getUserConstructor().getId());
                 workDetailByConstructorDto.setWorkerName(workDetail.getUserConstructor().getName());
-                workDetailByConstructorDto.setProductName(workDetail.getWorking().getConstructorProduct().getName());
+                workDetailByConstructorDto.setProductName(workDetail.getWorking().getConstructorProduct().getProduct().getName());
                 workDetailByConstructorDto.setWorkLevelName(workDetail.getName());
                 workDetailByConstructorDto.setEstimateWorkDate(workDetail.getEstimateWorkDate());
                 workDetailByConstructorDto.setEstimateWorkTime(workDetail.getEstimateWorkTime());
@@ -103,9 +102,7 @@ public class CalendarService {
         });
 
         constructorProducts.forEach(constructorProduct -> {
-            WorkerFilterDto workerFilterDto = new WorkerFilterDto();
-            workerFilterDto.setId(constructorProduct.getId());
-            workerFilterDto.setName(constructorProduct.getName());
+            WorkerFilterDto workerFilterDto = new WorkerFilterDto(constructorProduct.getId(), constructorProduct.getProduct().getName());
             workerFilterDtos.add(workerFilterDto);
         });
         constructorProductWorkLists.forEach(constructorProductWorkList -> {
@@ -151,19 +148,23 @@ public class CalendarService {
     }
 
     @Transactional(readOnly = true)
-    public List<WorkerFilterDto> getWorkerList(String constructorId){
+    public List<WorkerWithHolidayDto> getWorkerList(String constructorId){
         List<AffiliatedInfo> affiliatedInfos = affiliatedInfoRepository
                 .findByConstructorId(constructorId)
                 .orElseThrow(() -> new NullPointerException("해당 시공사에 작업 가능한 사람이 없습니다."));
-        List<WorkerFilterDto> workerFilterDtos = new ArrayList<>();
+        List<WorkerWithHolidayDto> workerWithHolidayDtos = new ArrayList<>();
         affiliatedInfos.forEach(affiliatedInfo -> {
             if (affiliatedInfo.getUserConstructor().isActive()) {
-                WorkerFilterDto workerFilterDto = new WorkerFilterDto();
-                workerFilterDto.setId(affiliatedInfo.getUserConstructor().getId());
-                workerFilterDto.setName(affiliatedInfo.getUserConstructor().getName());
-                workerFilterDtos.add(workerFilterDto);
+                List<WorkerHolidayDto> workerHolidayDtoList = new ArrayList<>();
+                affiliatedInfo.getUserConstructor().getUserConstructorHolidayList().forEach(userConstructorHoliday -> {
+                    WorkerHolidayDto workerHolidayDto = new WorkerHolidayDto(userConstructorHoliday.getDate());
+                    workerHolidayDtoList.add(workerHolidayDto);
+                });
+                WorkerWithHolidayDto workerWithHolidayDto = new WorkerWithHolidayDto(affiliatedInfo.getUserConstructor().getId(),affiliatedInfo.getUserConstructor().getName(),workerHolidayDtoList);
+
+                workerWithHolidayDtos.add(workerWithHolidayDto);
             }
         });
-        return workerFilterDtos;
+        return workerWithHolidayDtos;
     }
 }

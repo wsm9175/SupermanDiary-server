@@ -2,7 +2,7 @@ package com.lodong.spring.supermandiary.config;
 
 import com.lodong.spring.supermandiary.jwt.JwtAuthenticationFilter;
 import com.lodong.spring.supermandiary.jwt.JwtTokenProvider;
-import com.lodong.spring.supermandiary.responseentity.PermissionEnum;
+import com.lodong.spring.supermandiary.enumvalue.PermissionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

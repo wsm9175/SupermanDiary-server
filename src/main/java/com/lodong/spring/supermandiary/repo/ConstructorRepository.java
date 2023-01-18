@@ -13,6 +13,8 @@ public interface ConstructorRepository extends JpaRepository<Constructor, String
     @EntityGraph(attributePaths = {"constructorProducts"}, type = EntityGraph.EntityGraphType.LOAD)
     Optional<Constructor> findWithAllById(String constructorId);
 
+    public boolean existsByBusinessNumber(String businessNumber);
+
     @Transactional
     @Modifying
     @Query(value = "UPDATE Constructor u set u.payActivation =:isActivate where u.id = :constructorId")

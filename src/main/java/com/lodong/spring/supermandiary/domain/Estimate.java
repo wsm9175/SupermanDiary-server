@@ -24,9 +24,10 @@ public class Estimate {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     private ConstructorProduct constructorProduct;
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "request_order_id")
     private RequestOrder requestOrder;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "apartment_code")
     private Apartment apartment;
@@ -59,6 +60,8 @@ public class Estimate {
     private int price;
     @Column(nullable = false)
     private boolean isVat;
+    @Column(nullable = false)
+    private String status;
 
     @JsonIgnore
     @OneToMany(mappedBy = "estimate", fetch = FetchType.LAZY, cascade = CascadeType.ALL)

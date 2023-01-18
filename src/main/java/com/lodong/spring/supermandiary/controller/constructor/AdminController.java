@@ -85,7 +85,6 @@ public class AdminController {
             return getResponseMessage(statusEnum, message);
         }
     }
-
     @PutMapping("/pay/activate")
     public ResponseEntity<?> activatePayManage(@RequestHeader(name = "Authorization") String token, boolean activate){
         String constructorId;
@@ -330,12 +329,19 @@ public class AdminController {
         }
         
         try{
-            List<SalesDto> salesDtoList = adminService.getSales(constructorId);
+            SaleInfoDto saleInfoDto = adminService.getSales(constructorId);
             String message = "완료된 작업 목록(결제 안된 데이터 포함)";
-            return getResponseMessage(StatusEnum.OK, message, salesDtoList);
+            return getResponseMessage(StatusEnum.OK, message, saleInfoDto);
         }catch (NullPointerException e){
-            return getResponseMessage(StatusEnum.OK, e.getMessage(), null);
+            e.printStackTrace();
+            return getResponseMessage(StatusEnum.BAD_REQUEST, e.getMessage());
         }
+    }
+
+    @GetMapping("/get/product-list")
+    public ResponseEntity<?> getProductList(){
+        List<ProductInfoDTO> productInfoDTOS = adminService.getProductInfoDTOS();
+        return getResponseMessage(StatusEnum.OK, "product list", productInfoDTOS);
     }
 
     private String getConstructorId(String token) throws NullPointerException {

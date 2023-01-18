@@ -161,7 +161,7 @@ public class WorkingService {
         //회원 or 비회원
         if (working.getUserCustomer() != null) {
             workDetailDto.setCustomerName(working.getUserCustomer().getName());
-            workDetailDto.setCustomerPhoneNumber(working.getUserCustomer().getName());
+            workDetailDto.setCustomerPhoneNumber(working.getEstimate().getRequestOrder().getPhoneNumber());
             workDetailDto.setMember(true);
         } else if (working.getNonMemberName() != null) {
             workDetailDto.setCustomerName(working.getNonMemberName());
@@ -170,7 +170,7 @@ public class WorkingService {
         }
 
         // 상품 이름, 가격, 비고
-        workDetailDto.setProductName(working.getConstructorProduct().getName());
+        workDetailDto.setProductName(working.getConstructorProduct().getProduct().getName());
         workDetailDto.setPrice(working.getEstimate().getPrice());
         workDetailDto.setNote(working.getEstimate().getNote());
         workDetailDto.setRemark(working.getEstimate().getRemark());
@@ -305,7 +305,7 @@ public class WorkingService {
             isConfirmationLiveIn = requestOrder.isConfirmationLiveIn();
             isCashReceipt = requestOrder.isCashReceipt();
             customerNote = requestOrder.getNote();
-            productName = requestOrder.getRequestOrderProduct().getConstructorProduct().getName();
+            productName = requestOrder.getConstructorProduct().getProduct().getName();
             ////////////////////////////////////////////////////////////
         } else { // 비회원
             isIsMember = false;
@@ -325,7 +325,7 @@ public class WorkingService {
             }
             isCashReceipt = estimate.isCashReceipt();
             customerNote = estimate.getNote();
-            productName = estimate.getConstructorProduct().getName();
+            productName = estimate.getConstructorProduct().getProduct().getName();
         }
 
         estimate.getEstimateDetails().stream().forEach(estimateDetail -> {

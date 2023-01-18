@@ -6,21 +6,20 @@ import com.lodong.spring.supermandiary.domain.constructor.*;
 import com.lodong.spring.supermandiary.domain.userconstructor.AffiliatedInfo;
 import com.lodong.spring.supermandiary.domain.userconstructor.UserConstructor;
 import com.lodong.spring.supermandiary.domain.userconstructor.UserConstructorTech;
+import com.lodong.spring.supermandiary.domain.working.WorkDetail;
 import com.lodong.spring.supermandiary.domain.working.Working;
 import com.lodong.spring.supermandiary.dto.admin.*;
+import com.lodong.spring.supermandiary.dto.calendar.WorkerFilterDto;
+import com.lodong.spring.supermandiary.enumvalue.WorkLevelEnum;
 import com.lodong.spring.supermandiary.repo.*;
-import com.lodong.spring.supermandiary.responseentity.PermissionEnum;
-import edu.emory.mathcs.backport.java.util.Arrays;
+import com.lodong.spring.supermandiary.enumvalue.PermissionEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -33,12 +32,11 @@ public class AdminService {
     private final AffiliatedInfoRepository affiliatedInfoRepository;
     private final UserConstructorRepository userConstructorRepository;
     private final WorkingRepository workingRepository;
+    private final ProductRepository productRepository;
 
     @Transactional(readOnly = true)
     public WorkManageDto getWorkList(String constructorId) throws NullPointerException {
-        Constructor constructor = constructorRepository
-                .findWithAllById(constructorId)
-                .orElseThrow(() -> new NullPointerException("해당 시공사가 존재하지 않습니다."));
+        Constructor constructor = constructorRepository.findWithAllById(constructorId).orElseThrow(() -> new NullPointerException("해당 시공사가 존재하지 않습니다."));
 
         List<ConstructorProduct> constructorProducts = constructor.getConstructorProducts();
 
@@ -48,7 +46,7 @@ public class AdminService {
         for (ConstructorProduct constructorProduct : constructorProducts) {
             ConstructorProductWorkDto constructorProductWorkDto = new ConstructorProductWorkDto();
             constructorProductWorkDto.setId(constructorProduct.getId());
-            constructorProductWorkDto.setProductName(constructorProduct.getName());
+            constructorProductWorkDto.setProductName(constructorProduct.getProduct().getName());
             List<WorkListDto> workListDtos = new ArrayList<>();
             for (ConstructorProductWorkList constructorProductWorkList : constructorProduct.getConstructorProductWorkLists()) {
                 WorkListDto workListDto = new WorkListDto();
@@ -86,15 +84,12 @@ public class AdminService {
 
     @Transactional
     public void setProduct(String constructorId, ProductDto product) {
-        Constructor constructor = Constructor.builder()
-                .id(constructorId)
-                .build();
-
+        Constructor constructor = Constructor.builder().id(constructorId).build();
+        Product selectProduct = productRepository.findById(product.getProductId()).orElseThrow(()->new NullPointerException("해당 product는 존재하지 않습니다."));
         ConstructorProduct constructorProduct = new ConstructorProduct();
         constructorProduct.setId(UUID.randomUUID().toString());
         constructorProduct.setConstructor(constructor);
-        constructorProduct.setName(product.getName());
-
+        constructorProduct.setProduct(selectProduct);
 
         List<ConstructorProductWorkList> constructorProductWorkLists = new ArrayList<>();
         for (ProductWorkDto productWorkDto : product.getProductWorkList()) {
@@ -103,30 +98,20 @@ public class AdminService {
                     .constructorProduct(constructorProduct)
                     .sequence(productWorkDto.getSequence())
                     .name(productWorkDto.getName())
+                    .isFileIn(productWorkDto.isFileIn())
                     .build();
             constructorProductWorkLists.add(constructorProductWorkList);
         }
         constructorProduct.setConstructorProductWorkLists(constructorProductWorkLists);
-
         constructorProductRepository.save(constructorProduct);
-        //constructorProductWorkListRepository.saveAll(constructorProductWorkLists);
     }
 
 
     @Transactional
     public void inviteMember(String constructorId, InviteDto inviteDto) {
-        Constructor constructor = Constructor.builder()
-                .id(constructorId)
-                .build();
+        Constructor constructor = Constructor.builder().id(constructorId).build();
 
-        Invite invite = Invite.builder()
-                .id(UUID.randomUUID().toString())
-                .constructor(constructor)
-                .name(inviteDto.getName())
-                .phoneNumber(inviteDto.getPhoneNumber())
-                .createAt(LocalDateTime.now())
-                .signComplete(false)
-                .build();
+        Invite invite = Invite.builder().id(UUID.randomUUID().toString()).constructor(constructor).name(inviteDto.getName()).phoneNumber(inviteDto.getPhoneNumber()).createAt(LocalDateTime.now()).signComplete(false).build();
 
         inviteRepository.save(invite);
         /////////////// SMS 전송기능 추가 예정
@@ -134,13 +119,9 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public WorkerManageDto getWorkerManage(String constructorId) {
-        List<Invite> inviteList = inviteRepository
-                .findByConstructorIdAndSignComplete(constructorId, false)
-                .stream().filter(invite -> !invite.isSignComplete()).toList();
+        List<Invite> inviteList = inviteRepository.findByConstructorIdAndSignComplete(constructorId, false).stream().filter(invite -> !invite.isSignComplete()).toList();
 
-        List<AffiliatedInfo> affiliatedInfos = affiliatedInfoRepository
-                .findByConstructorId(constructorId)
-                .orElse(new ArrayList<>());
+        List<AffiliatedInfo> affiliatedInfos = affiliatedInfoRepository.findByConstructorId(constructorId).orElse(new ArrayList<>());
 
         WorkerManageDto workManageDto = new WorkerManageDto();
 
@@ -150,30 +131,20 @@ public class AdminService {
         // 초대 기술자 세팅
         for (Invite invite : inviteList) {
             if (!invite.isSignComplete()) {
-                InvitationWorkerDto invitationWorkerDto = new InvitationWorkerDto();
-                invitationWorkerDto.setName(invite.getName());
+                InvitationWorkerDto invitationWorkerDto = new InvitationWorkerDto(invite.getName());
                 invitationWorkerDtoList.add(invitationWorkerDto);
             }
         }
-
         // 기술자 목록(이름, 전화번호, 기술목록, 활성화 여부) 세팅
         for (AffiliatedInfo affiliatedInfo : affiliatedInfos) {
             UserConstructor userConstructor = affiliatedInfo.getUserConstructor();
-            WorkerInfoDto workerInfoDto = new WorkerInfoDto();
-            workerInfoDto.setWorkerId(userConstructor.getId());
-            workerInfoDto.setName(userConstructor.getName());
-            workerInfoDto.setPhoneNumber(userConstructor.getPhoneNumber());
             List<WorkerTechDto> workerTechDtoList = new ArrayList<>();
             //작업자 기술 목록
             log.info("userConsturctor tech size : " + userConstructor.getUserConstructorTeches().size());
-            userConstructor.getUserConstructorTeches()
-                    .stream()
-                    .map(UserConstructorTech::getTechName)
-                    .forEach(s -> {
-                        workerTechDtoList.add(new WorkerTechDto(s));
-                    });
-            workerInfoDto.setWorkerTechDtoList(workerTechDtoList);
-            workerInfoDto.setIsActive(userConstructor.isActive());
+            userConstructor.getUserConstructorTeches().stream().map(UserConstructorTech::getTechName).forEach(s -> {
+                workerTechDtoList.add(new WorkerTechDto(s));
+            });
+            WorkerInfoDto workerInfoDto = new WorkerInfoDto(userConstructor.getId(), userConstructor.getName(), userConstructor.getPhoneNumber(), workerTechDtoList, userConstructor.isActive());
             workerInfoDtoList.add(workerInfoDto);
         }
 
@@ -184,11 +155,10 @@ public class AdminService {
 
     @Transactional
     public void controlWorkerActivation(String userId, boolean isActivate) {
-        UserConstructor userConstructor = userConstructorRepository
-                .findById(userId)
-                .orElseThrow(()-> new NullPointerException("해당 작업자는 존재하지 않습니다."));
+        UserConstructor userConstructor = userConstructorRepository.findById(userId).orElseThrow(() -> new NullPointerException("해당 작업자는 존재하지 않습니다."));
         userConstructor.getRoles().remove(0);
         userConstructor.getRoles().add(isActivate ? PermissionEnum.USER.name() : PermissionEnum.SUSPENDMEBER.name());
+        userConstructor.setActive(isActivate);
         userConstructorRepository.save(userConstructor);
     }
 
@@ -218,23 +188,59 @@ public class AdminService {
     }
 
     @Transactional(readOnly = true)
-    public List<SalesDto> getSales(String constructorId) {
-        List<Working> workings = workingRepository
-                .findByConstructorIdAndCompleteConstructTrue(constructorId)
-                .orElseThrow(() -> new NullPointerException("매출이 존재하지 않습니다."));
+    public SaleInfoDto getSales(String constructorId) {
+        List<Working> workings = workingRepository.findByConstructorIdAndCompleteConstructTrue(constructorId).orElseThrow(() -> new NullPointerException("매출이 존재하지 않습니다."));
+        List<AffiliatedInfo> affiliatedInfos = affiliatedInfoRepository.findByConstructorId(constructorId)
+                .orElseThrow(() -> new NullPointerException("해당 시공사에 작업 가능한 사람이 없습니다."));
 
+        List<WorkerFilterDto> workerFilterDtos = new ArrayList<>();
         List<SalesDto> salesDtoList = new ArrayList<>();
-        workings.stream().forEach(working -> {
-            SalesDto salesDto = new SalesDto();
-            salesDto.setWorkId(working.getId());
-            salesDto.setName(working.getConstructorProduct().getName());
-            salesDto.setPrice(working.getEstimate().getPrice());
-            salesDto.setCompleteConstructDate(working.getCompleteConstructDate());
-            salesDto.setPay(working.isCompletePay());
-            salesDto.setCompletePayDate(working.getCompletePayDate());
-            salesDtoList.add(salesDto);
+
+        affiliatedInfos.forEach(affiliatedInfo -> {
+            if (affiliatedInfo.getUserConstructor().isActive()) {
+                WorkerFilterDto workerFilterDto = new WorkerFilterDto(affiliatedInfo.getUserConstructor().getId(),affiliatedInfo.getUserConstructor().getName());
+                workerFilterDtos.add(workerFilterDto);
+            }
         });
 
-        return salesDtoList;
+        workings.forEach(working -> {
+            String constructorWorkerName = null;
+            String constructorWorkerId = null;
+            for (WorkDetail workDetail : working.getWorkDetails()) {
+                if (workDetail.getName().equals(WorkLevelEnum.CONSTRUCT.label())) {
+                    constructorWorkerName = workDetail.getUserConstructor().getName();
+                    constructorWorkerId = workDetail.getUserConstructor().getId();
+                    break;
+                }
+            }
+            SalesDto salesDto = null;
+            if(working.getApartment() != null){
+                salesDto = new SalesDto(working.getId(), working.getConstructorProduct().getProduct().getName(),
+                        working.getEstimate().getPrice(), working.getCompleteConstructDate(),
+                        working.isCompletePay(), working.getCompletePayDate(), constructorWorkerId, constructorWorkerName,
+                        working.getApartment().getName(), working.getApartmentDong(), working.getApartmentHosu());
+            }else if(working.getOtherHome() != null){
+                salesDto = new SalesDto(working.getId(), working.getConstructorProduct().getProduct().getName(),
+                        working.getEstimate().getPrice(), working.getCompleteConstructDate(),
+                        working.isCompletePay(), working.getCompletePayDate(), constructorWorkerId, constructorWorkerName,
+                        working.getOtherHome().getName(), working.getOtherHomeDong(), working.getOtherHomeHosu());
+            }
+            salesDtoList.add(salesDto);
+        });
+        SaleInfoDto saleInfoDto = new SaleInfoDto(workerFilterDtos, salesDtoList);
+
+        return saleInfoDto;
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductInfoDTO> getProductInfoDTOS(){
+        List<Product> productList = productRepository.findAll();
+        List<ProductInfoDTO> productInfoDTOS = new ArrayList<>();
+        Optional.ofNullable(productList).orElseGet(Collections::emptyList).stream().forEach(product -> {
+            ProductInfoDTO productInfoDTO = new ProductInfoDTO(product.getId(), product.getName(), product.getDetail());
+            productInfoDTOS.add(productInfoDTO);
+        });
+
+        return productInfoDTOS;
     }
 }

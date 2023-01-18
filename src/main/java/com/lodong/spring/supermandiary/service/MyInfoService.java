@@ -18,6 +18,6 @@ public class MyInfoService {
                 .id(uuid)
                 .build();
         return affiliatedInfoRepository.findByUserConstructor(userConstructor).orElseThrow(
-                () -> new NullPointerException());
+                NullPointerException::new);
     }
 }

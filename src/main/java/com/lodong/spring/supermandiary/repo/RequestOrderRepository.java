@@ -2,7 +2,6 @@ package com.lodong.spring.supermandiary.repo;
 
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import com.lodong.spring.supermandiary.domain.create.RequestOrder;
-import org.bouncycastle.cert.ocsp.Req;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

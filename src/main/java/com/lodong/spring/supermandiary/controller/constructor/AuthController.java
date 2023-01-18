@@ -11,7 +11,7 @@ import com.lodong.spring.supermandiary.dto.address.AddressDTO;
 import com.lodong.spring.supermandiary.dto.auth.ConstructorIdDTO;
 import com.lodong.spring.supermandiary.dto.jwt.TokenRequestDTO;
 import com.lodong.spring.supermandiary.jwt.TokenInfo;
-import com.lodong.spring.supermandiary.responseentity.PermissionEnum;
+import com.lodong.spring.supermandiary.enumvalue.PermissionEnum;
 import com.lodong.spring.supermandiary.responseentity.StatusEnum;
 import com.lodong.spring.supermandiary.service.*;
 import lombok.extern.slf4j.Slf4j;
@@ -149,6 +149,8 @@ public class AuthController {
                 .orderManage(false)
                 .payManage(false)
                 .webAdminActive(false)
+                .businessNumber(constructorDTO.getBusinessNumber())
+                .employeeNumber(constructorDTO.getEmployeeNumber())
                 .build();
 
         //파일 이름을 사업장 UUID + "-" + businessLicense 형태로 지음
@@ -217,6 +219,11 @@ public class AuthController {
         System.out.println("인증번호 : " + numstr);
         certifiedPhoneNumberService.certifiedPhoneNumber(phoneNumber, numstr);
         return numstr;
+    }
+
+    @GetMapping("/duplicate-check/business-number")
+    public ResponseEntity<?> duplicateCheckBusinessNumber(String businessNumber){
+        return getResponseMessage(StatusEnum.OK, "사업자 번호 중복 여부", authService.isDuplicateBusinessNumber(businessNumber));
     }
 
     @PostMapping("/do")

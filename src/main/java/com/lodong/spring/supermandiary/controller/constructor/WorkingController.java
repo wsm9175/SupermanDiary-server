@@ -189,7 +189,6 @@ public class WorkingController {
             return getResponseMessage(statusEnum, message);
         }
     }
-
     @GetMapping("/get/estimate")
     private ResponseEntity<?> getEstimate(@RequestHeader(name = "Authorization") String token, String workId) {
         String constructorId;
@@ -213,9 +212,7 @@ public class WorkingController {
             String message = "견적서 정보를 불러오는데 오류가 발생했습니다." + e.getMessage();
             return getResponseMessage(statusEnum, message);
         }
-
     }
-
 
     private String getConstructorId(String token) throws NullPointerException {
         String userUuid = jwtTokenProvider.getUserUuid(token.substring(7));

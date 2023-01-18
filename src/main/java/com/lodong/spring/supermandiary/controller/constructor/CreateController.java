@@ -2,9 +2,7 @@ package com.lodong.spring.supermandiary.controller.constructor;
 
 import com.lodong.spring.supermandiary.domain.userconstructor.AffiliatedInfo;
 import com.lodong.spring.supermandiary.domain.create.RequestOrderStatusDto;
-import com.lodong.spring.supermandiary.dto.create.ConstructorProductDto;
-import com.lodong.spring.supermandiary.dto.create.RequestOrderDto;
-import com.lodong.spring.supermandiary.dto.create.SendEstimateDto;
+import com.lodong.spring.supermandiary.dto.create.*;
 import com.lodong.spring.supermandiary.jwt.JwtTokenProvider;
 import com.lodong.spring.supermandiary.responseentity.StatusEnum;
 import com.lodong.spring.supermandiary.service.CreateService;
@@ -24,7 +22,6 @@ import static com.lodong.spring.supermandiary.util.MakeResponseEntity.*;
 public class CreateController {
     private final JwtTokenProvider jwtTokenProvider;
     private final MyInfoService myInfoService;
-
     private final CreateService createService;
 
     public CreateController(JwtTokenProvider jwtTokenProvider, MyInfoService myInfoService, CreateService createService) {
@@ -118,9 +115,42 @@ public class CreateController {
         }
     }
 
-    @PostMapping("/update/req-order/state")
-    public ResponseEntity<?> updateRequestOrderStatus(@RequestHeader(name = "Authorization") String token, @RequestBody RequestOrderStatusDto requestOrderStatus){
+    @PutMapping("/re-send/estimate")
+    public ResponseEntity<?> reSendEstimate(@RequestHeader(name = "Authorization") String token, @RequestBody ReSendEstimateDTO reSendEstimate){
+        String constructorId = getConstructorId(token);
+        log.info("들어온 정보 : " + reSendEstimate.toString());
         try {
+            createService.reSendEstimate(constructorId, reSendEstimate);
+            StatusEnum statusEnum = StatusEnum.OK;
+            String message = "비회원 견적서 발송 성공";
+            return getResponseMessage(statusEnum, message, null);
+        } catch (DataIntegrityViolationException dataIntegrityViolationException) {
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = "데이터 베이스 삽입중 오류가 발생했습니다." + dataIntegrityViolationException.getMessage();
+            return getResponseMessage(statusEnum, message);
+        } catch (Exception e) {
+            e.printStackTrace();
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = e.getMessage();
+            return getResponseMessage(statusEnum, message);
+        }
+    }
+
+    @PostMapping("/send/estimate/member-meet")
+    public ResponseEntity<?> sendEstimateMemberMeet(@RequestHeader(name = "Authorization") String token, @RequestBody SendEstimateDto sendEstimateDto){
+        try{
+            createService.sendEstimateMemberMeet(getConstructorId(token), sendEstimateDto);
+            return getResponseMessage(StatusEnum.OK, "계약서 전송 성공", null);
+        }catch (NullPointerException nullPointerException){
+            nullPointerException.printStackTrace();
+            return getResponseMessage(StatusEnum.BAD_REQUEST, nullPointerException.getMessage());
+        }
+    }
+
+    @PostMapping("/update/req-order/state")
+    public ResponseEntity<?> updateRequestOrderStatus(@RequestBody RequestOrderStatusDto requestOrderStatus){
+        try {
+            log.info(requestOrderStatus.toString());
             createService.updateRequestStatus(requestOrderStatus);
             StatusEnum statusEnum = StatusEnum.OK;
             String message = "전자계약서 상태 수정 성공 : " + requestOrderStatus.getStatus();
@@ -129,11 +159,21 @@ public class CreateController {
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = "전자계약서 상태 수정중 오류가 발생했습니다." + dataIntegrityViolationException.getMessage();
             return getResponseMessage(statusEnum, message);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (NullPointerException nullPointerException) {
+            nullPointerException.printStackTrace();
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
-            String message = e.getMessage();
+            String message = nullPointerException.getMessage();
             return getResponseMessage(statusEnum, message);
+        }
+    }
+
+    @GetMapping("/get/customer-info")
+    public ResponseEntity<?> getCustomerData(String customerPhoneNumber){
+        try{
+            CustomerDTO customerDTO = createService.getCustomerInfo(customerPhoneNumber);
+            return getResponseMessage(StatusEnum.OK, "회원정보 가져오기 성공", customerDTO);
+        }catch (NullPointerException nullPointerException){
+            return getResponseMessage(StatusEnum.BAD_REQUEST, nullPointerException.getMessage());
         }
     }
 }

@@ -11,4 +11,6 @@ public class ConstructorDTO {
     private boolean orderManage;
     private boolean payManage;
     private boolean webAdminActive;
+    private String businessNumber;
+    private int employeeNumber;
 }

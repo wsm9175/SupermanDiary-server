@@ -24,21 +24,20 @@ public class AddressService {
         String address = addressDTO.getAddress();
         String addressDetail = addressDTO.getAddressDetail();
 
-        String[] words = address.split(" ");
-        StringBuilder sigg = new StringBuilder();
+        //String[] words = address.split(" ");
+        //StringBuilder sigg = new StringBuilder();
         //시도-시군구-읍면-도로명-건물번호
-        for(int i=1;i<=2;i++){
+       /* for(int i=1;i<=2;i++){
             if(words[i].charAt(words[i].length()-1) == '시' || words[i].charAt(words[i].length()-1) == '군'
                     || words[i].charAt(words[i].length()-1) == '구'){
                 sigg.append(i == 1 ? words[i] + " " : words[i]);
             }
-        }
-        log.info(sigg.toString());
-        SiggAreas siggAreas = siggAreasRepository.findByName(sigg.toString()).orElseThrow();
-        int siggCode = siggAreas.getSidoAreas().getCode();
+        }*/
+        //log.info(sigg.toString());
+        //SiggAreas siggAreas = siggAreasRepository.findByName(sigg.toString()).orElseThrow();
+        //int siggCode = siggAreas.getSidoAreas().getCode();
         ConstructorAddress constructorAddress = ConstructorAddress.builder()
                 .constructorId(constructorId)
-                .siggCode(siggCode)
                 .address(address)
                 .addressDetail(addressDetail)
                 .build();

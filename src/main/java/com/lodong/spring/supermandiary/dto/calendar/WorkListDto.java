@@ -6,6 +6,6 @@ import java.util.List;
 
 @Data
 public class WorkListDto {
-    private List<WorkerFilterDto> workerList;
+    private List<WorkerWithHolidayDto> workerList;
     private List<WorkDetailByConstructorDto> workDetailByConstructorDtoList;
 }
