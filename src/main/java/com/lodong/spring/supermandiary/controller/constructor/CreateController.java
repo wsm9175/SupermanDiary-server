@@ -122,7 +122,7 @@ public class CreateController {
         try {
             createService.reSendEstimate(constructorId, reSendEstimate);
             StatusEnum statusEnum = StatusEnum.OK;
-            String message = "비회원 견적서 발송 성공";
+            String message = "견적서 재전송 성공";
             return getResponseMessage(statusEnum, message, null);
         } catch (DataIntegrityViolationException dataIntegrityViolationException) {
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;

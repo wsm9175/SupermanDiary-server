@@ -7,6 +7,7 @@ import com.lodong.spring.supermandiary.domain.userconstructor.AffiliatedInfo;
 import com.lodong.spring.supermandiary.domain.working.Working;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import com.lodong.spring.supermandiary.dto.working.*;
+import com.lodong.spring.supermandiary.enumvalue.WorkingStatusEnum;
 import com.lodong.spring.supermandiary.repo.AffiliatedInfoRepository;
 import com.lodong.spring.supermandiary.repo.WorkingRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,6 @@ public class WorkingService {
                 .findByConstructor(constructor)
                 .orElseThrow(() -> new NullPointerException("working list가 존재하지 않음"));
 
-
         HashMap<String, List<WorkApartmentDto>> workList = new HashMap<>();
         for (Working working : workingList) {
             if (working.getApartment() != null) {
@@ -44,7 +44,7 @@ public class WorkingService {
                     workApartmentDto.setHosu(working.getApartmentHosu());
                     workApartmentDto.setDong(working.getApartmentDong());
                     workApartmentDto.setWorkId(working.getId());
-
+                    workApartmentDto.setStatus(working.getNowWorkInfo().getWorkDetail().getUserConstructor() != null ? WorkingStatusEnum.ASSIGNED.label() : WorkingStatusEnum.NOTASSIGNED.label());
                     if (workList.get(working.getApartment().getName()) == null) {
                         List<WorkApartmentDto> list = new ArrayList<>();
                         list.add(workApartmentDto);

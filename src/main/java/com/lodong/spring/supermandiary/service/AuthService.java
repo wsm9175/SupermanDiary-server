@@ -1,19 +1,26 @@
 package com.lodong.spring.supermandiary.service;
 
+import com.lodong.spring.supermandiary.domain.address.ConstructorAddress;
+import com.lodong.spring.supermandiary.domain.admin.Invite;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
-import com.lodong.spring.supermandiary.domain.constructor.ConstructorTechDetail;
+import com.lodong.spring.supermandiary.domain.constructor.ConstructorProduct;
+import com.lodong.spring.supermandiary.domain.constructor.Product;
 import com.lodong.spring.supermandiary.domain.file.FileList;
 import com.lodong.spring.supermandiary.domain.userconstructor.AffiliatedInfo;
 import com.lodong.spring.supermandiary.domain.userconstructor.UserConstructor;
-import com.lodong.spring.supermandiary.domain.userconstructor.UserConstructorTech;
-import com.lodong.spring.supermandiary.domain.usercustomer.UserCustomer;
 import com.lodong.spring.supermandiary.dto.address.AddressDTO;
+import com.lodong.spring.supermandiary.dto.auth.ConstructorInfoDTO;
+import com.lodong.spring.supermandiary.dto.auth.ConstructorProductDTO;
+import com.lodong.spring.supermandiary.dto.auth.DuplicateCheckDTO;
+import com.lodong.spring.supermandiary.dto.auth.ProductInfoDTO;
 import com.lodong.spring.supermandiary.dto.jwt.TokenRequestDTO;
 import com.lodong.spring.supermandiary.jwt.TokenInfo;
 import com.lodong.spring.supermandiary.jwt.JwtTokenProvider;
 import com.lodong.spring.supermandiary.repo.*;
+import com.lodong.spring.supermandiary.repo.address.ConstructorAddressRepository;
 import com.lodong.spring.supermandiary.service.address.AddressService;
 import com.lodong.spring.supermandiary.service.file.SaveFileService;
+import edu.emory.mathcs.backport.java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,8 +30,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.swing.text.html.Option;
 import javax.xml.bind.ValidationException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -36,19 +47,22 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
 
     private final AffiliatedInfoRepository affiliatedInfoRepository;
+    private final ConstructorProductRepository constructorProductRepository;
 
-    private final ConstructorTechDetailRepository constructorTechDetailRepository;
     private final UserConstructorTechRepository userConstructorTechRepository;
     private final UserCustomerRepository userCustomerRepository;
+    private final ProductRepository productRepository;
+    private final InviteRepository inviteRepository;
     private final SaveFileService saveFileService;
     private final AddressService addressService;
+    private final ConstructorAddressRepository constructorAddressRepository;
 
     @Transactional
-    public void register(UserConstructor user, List<UserConstructorTech> userConstructorTechList, AffiliatedInfo affiliatedInfo) throws IllegalStateException, Exception {
+    public void register(UserConstructor user/*, List<UserConstructorTech> userConstructorTechList*/, AffiliatedInfo affiliatedInfo) throws IllegalStateException, Exception {
         if (isDuplicated(user.getEmail())) throw new IllegalStateException("이메일 중복값 존재");
         try {
             userConstructorRepository.save(user);
-            userConstructorTechRepository.saveAll(userConstructorTechList);
+            //userConstructorTechRepository.saveAll(userConstructorTechList);
             affiliatedInfoRepository.save(affiliatedInfo);
         }catch (NullPointerException nullPointerException){
             System.out.println(nullPointerException.getMessage());
@@ -62,16 +76,48 @@ public class AuthService {
 
     @Transactional
     public void registerConstructor(UserConstructor userConstructor, Constructor constructor, FileList fileList,
-                                    MultipartFile file, AddressDTO addressDTO, List<ConstructorTechDetail> constructorTechDetailList,
+                                    MultipartFile file, AddressDTO addressDTO, List<ConstructorProductDTO> constructorProductDTOS,
                                     AffiliatedInfo affiliatedInfo) throws IllegalStateException, Exception {
         if (isDuplicated(constructor.getId())) throw new IllegalStateException();
 
         try {
+            String address = addressDTO.getAddress();
+            String addressDetail = addressDTO.getAddressDetail();
+            //String[] words = address.split(" ");
+            //StringBuilder sigg = new StringBuilder();
+            //시도-시군구-읍면-도로명-건물번호
+       /* for(int i=1;i<=2;i++){
+            if(words[i].charAt(words[i].length()-1) == '시' || words[i].charAt(words[i].length()-1) == '군'
+                    || words[i].charAt(words[i].length()-1) == '구'){
+                sigg.append(i == 1 ? words[i] + " " : words[i]);
+            }
+        }*/
+            //log.info(sigg.toString());
+            //SiggAreas siggAreas = siggAreasRepository.findByName(sigg.toString()).orElseThrow();
+            //int siggCode = siggAreas.getSidoAreas().getCode();
+            ConstructorAddress constructorAddress = ConstructorAddress.builder()
+                    .constructorId(constructor.getId())
+                    .address(address)
+                    .addressDetail(addressDetail)
+                    .build();
+            List<ConstructorProduct> constructorProducts = new ArrayList<>();
+            //사업자 보유 기술 세팅
+            for (ConstructorProductDTO constructorProductDTO : constructorProductDTOS ) {
+                Product product = productRepository.findById(constructorProductDTO.getId()).orElseThrow(()->new NullPointerException("존재하지 않는 상품입니다."));
+                ConstructorProduct constructorProduct = ConstructorProduct.builder()
+                        .id(UUID.randomUUID().toString())
+                        .constructor(constructor)
+                        .product(product)
+                        .isFirst(true)
+                        .build();
+
+                constructorProducts.add(constructorProduct);
+            }
             userConstructorRepository.save(userConstructor);
             constructorRepository.save(constructor);
-            saveFileService.saveBusinessLicense(fileList, constructor.getId(), file);
-            addressService.settingConstructorAddress(addressDTO, constructor.getId());
-            constructorTechDetailRepository.saveAll(constructorTechDetailList);
+            //saveFileService.saveBusinessLicense(fileList, constructor.getId(), file);
+            constructorAddressRepository.save(constructorAddress);
+            constructorProductRepository.saveAll(constructorProducts);
             affiliatedInfoRepository.save(affiliatedInfo);
         } catch (Exception e) {
             e.printStackTrace();
@@ -138,6 +184,32 @@ public class AuthService {
 
     public boolean isDuplicated(String phoneNumber) {
         return userConstructorRepository.existsByPhoneNumber(phoneNumber);
+    }
+
+    public DuplicateCheckDTO isDuplicateAndInvite(String phoneNumber){
+        DuplicateCheckDTO duplicateCheckDTO = new DuplicateCheckDTO();
+        duplicateCheckDTO.setIsDuplicate(userConstructorRepository.existsByPhoneNumber(phoneNumber));
+        inviteRepository.findByPhoneNumberAndSignComplete(phoneNumber, false).ifPresent(invites -> {
+            duplicateCheckDTO.setIsInvite(true);
+            List<ConstructorInfoDTO> constructorInfoDTOS = new ArrayList<>();
+            for(Invite invite : invites){
+                ConstructorInfoDTO constructorInfoDTO = new ConstructorInfoDTO(invite.getConstructor().getId(), invite.getConstructor().getName());
+                constructorInfoDTOS.add(constructorInfoDTO);
+            }
+            duplicateCheckDTO.setConstructorInfoDTO(constructorInfoDTOS);
+        });
+        return duplicateCheckDTO;
+    }
+
+    public List<ProductInfoDTO> getProductList(){
+        List<Product> products = productRepository.findAll();
+        List<ProductInfoDTO> productInfoDTOS = new ArrayList<>();
+        for(Product product : products){
+            ProductInfoDTO productInfoDTO = new ProductInfoDTO(product.getId(), product.getName());
+            productInfoDTOS.add(productInfoDTO);
+        }
+
+        return productInfoDTOS;
     }
 
     public void insertRefreshToken(String refreshToken, String phoneNumber) {

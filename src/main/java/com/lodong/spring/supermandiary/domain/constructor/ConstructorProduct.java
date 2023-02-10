@@ -27,6 +27,7 @@ public class ConstructorProduct {
     @ManyToOne(fetch = FetchType.LAZY)
     private Product product;
     private String introduction;
+    private boolean isFirst;
 
     @JsonIgnore
     @OneToMany(mappedBy = "constructorProduct", fetch = FetchType.LAZY, cascade = CascadeType.ALL, targetEntity = ConstructorProductWorkList.class)

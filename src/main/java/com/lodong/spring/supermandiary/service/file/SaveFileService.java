@@ -23,7 +23,7 @@ public class SaveFileService {
     private final BusinessLicenseRepository businessLicenseRepository;
    /* private final String STORAGE_ROOT_PATH = "C:\\Users\\seongminWoo\\Desktop\\outsourcing\\supermandiary\\supermandiary\\src\\main\\resources\\static";
     private final String BUSINESSLICENSE_PATH = "\\";*/
-    private final String STORAGE_ROOT_PATH = "/storage/";
+    private final String STORAGE_ROOT_PATH = "/app/";
     private final String BUSINESSLICENSE_PATH = "business-license/";
 
     public void saveBusinessLicense(FileList businessLicense, String constructorId, MultipartFile file) throws NullPointerException {

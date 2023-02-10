@@ -1,6 +1,7 @@
 package com.lodong.spring.supermandiary.domain.userconstructor;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.lodong.spring.supermandiary.domain.constructor.Product;
 import lombok.*;
 
 import javax.persistence.*;
@@ -15,9 +16,9 @@ public class UserConstructorTech {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_constructor_id")
     private UserConstructor userConstructor;
-    @Column(nullable = false)
-    private String techName;
-
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id")
+    private Product product;
 
     @PrePersist
     public void prePersist() {

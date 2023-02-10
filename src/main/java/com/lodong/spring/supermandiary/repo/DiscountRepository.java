@@ -1,10 +1,9 @@
 package com.lodong.spring.supermandiary.repo;
 
-
+import com.lodong.spring.supermandiary.domain.Discount;
 import com.lodong.spring.supermandiary.domain.Estimate;
-import com.lodong.spring.supermandiary.domain.EstimateDetail;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface EstimateDetailRepository extends JpaRepository<EstimateDetail, String> {
+public interface DiscountRepository extends JpaRepository<Discount, String> {
     public void deleteAllByEstimate(Estimate estimate);
 }

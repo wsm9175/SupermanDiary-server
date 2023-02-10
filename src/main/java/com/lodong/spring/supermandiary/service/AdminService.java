@@ -9,12 +9,15 @@ import com.lodong.spring.supermandiary.domain.userconstructor.UserConstructorTec
 import com.lodong.spring.supermandiary.domain.working.WorkDetail;
 import com.lodong.spring.supermandiary.domain.working.Working;
 import com.lodong.spring.supermandiary.dto.admin.*;
+import com.lodong.spring.supermandiary.dto.auth.ConstructorProductDTO;
 import com.lodong.spring.supermandiary.dto.calendar.WorkerFilterDto;
 import com.lodong.spring.supermandiary.enumvalue.WorkLevelEnum;
 import com.lodong.spring.supermandiary.repo.*;
 import com.lodong.spring.supermandiary.enumvalue.PermissionEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.nurigo.java_sdk.api.Message;
+import net.nurigo.java_sdk.exceptions.CoolsmsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -105,16 +108,36 @@ public class AdminService {
         constructorProduct.setConstructorProductWorkLists(constructorProductWorkLists);
         constructorProductRepository.save(constructorProduct);
     }
+    @Transactional
+    public void alterProduct(ConstructorProductAlterDTO constructorProductAlterDTO) {
+        ConstructorProduct constructorProduct = constructorProductRepository
+                .findById(constructorProductAlterDTO.getConstructorProductId())
+                .orElseThrow(()->new NullPointerException("해당 시공사 상품은 존재하지 않습니다."));
+        constructorProductWorkListRepository.deleteAllByConstructorProduct(constructorProduct);
 
+        List<ConstructorProductWorkList> constructorProductWorkLists = new ArrayList<>();
+
+        Optional.ofNullable(constructorProductAlterDTO.getProductWorkList()).orElseGet(Collections::emptyList).forEach(productWorkDto -> {
+            ConstructorProductWorkList constructorProductWorkList = ConstructorProductWorkList.builder()
+                    .id(UUID.randomUUID().toString())
+                    .constructorProduct(constructorProduct)
+                    .sequence(productWorkDto.getSequence())
+                    .name(productWorkDto.getName())
+                    .isFileIn(productWorkDto.isFileIn())
+                    .build();
+            constructorProductWorkLists.add(constructorProductWorkList);
+        });
+        constructorProduct.setConstructorProductWorkLists(constructorProductWorkLists);
+    }
 
     @Transactional
-    public void inviteMember(String constructorId, InviteDto inviteDto) {
-        Constructor constructor = Constructor.builder().id(constructorId).build();
+    public void inviteMember(String constructorId, InviteDto inviteDto) throws NullPointerException{
+        Constructor constructor = constructorRepository.findById(constructorId).orElseThrow(()->new NullPointerException("존재하지 않는 시공사 입니다."));
 
         Invite invite = Invite.builder().id(UUID.randomUUID().toString()).constructor(constructor).name(inviteDto.getName()).phoneNumber(inviteDto.getPhoneNumber()).createAt(LocalDateTime.now()).signComplete(false).build();
-
         inviteRepository.save(invite);
         /////////////// SMS 전송기능 추가 예정
+        invitePhoneNumber(invite.getPhoneNumber(), constructor.getName());
     }
 
     @Transactional(readOnly = true)
@@ -141,8 +164,8 @@ public class AdminService {
             List<WorkerTechDto> workerTechDtoList = new ArrayList<>();
             //작업자 기술 목록
             log.info("userConsturctor tech size : " + userConstructor.getUserConstructorTeches().size());
-            userConstructor.getUserConstructorTeches().stream().map(UserConstructorTech::getTechName).forEach(s -> {
-                workerTechDtoList.add(new WorkerTechDto(s));
+            userConstructor.getUserConstructorTeches().stream().map(UserConstructorTech::getProduct).forEach(product -> {
+                workerTechDtoList.add(new WorkerTechDto(product.getName()));
             });
             WorkerInfoDto workerInfoDto = new WorkerInfoDto(userConstructor.getId(), userConstructor.getName(), userConstructor.getPhoneNumber(), workerTechDtoList, userConstructor.isActive());
             workerInfoDtoList.add(workerInfoDto);
@@ -242,5 +265,25 @@ public class AdminService {
         });
 
         return productInfoDTOS;
+    }
+
+    private void invitePhoneNumber(String phoneNumber, String constructorName) {
+        String api_key = "NCSXYLSJMWZVUBCW";
+        String api_secret = "M4WHLCZXHODUNAJW2I264PUCREYUZKWX";
+        Message coolsms = new Message(api_key, api_secret);
+
+        // 4 params(to, from, type, text) are mandatory. must be filled
+        HashMap<String, String> params = new HashMap<String, String>();
+        params.put("to", phoneNumber);    // 수신전화번호
+        params.put("from", "01030219175");    // 발신전화번호. 테스트시에는 발신,수신 둘다 본인 번호로 하면 됨
+        params.put("type", "SMS");
+        params.put("text", "슈퍼맨다이어리 - " + constructorName + "에서 초대하였습니다.");
+        params.put("app_version", "test app 1.2"); // application name and version
+        try {
+            coolsms.send(params);
+        } catch (CoolsmsException e) {
+            System.out.println(e.getMessage());
+            System.out.println(e.getCode());
+        }
     }
 }

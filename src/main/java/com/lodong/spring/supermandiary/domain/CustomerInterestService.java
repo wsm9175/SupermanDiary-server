@@ -1,5 +1,6 @@
 package com.lodong.spring.supermandiary.domain;
 
+import com.lodong.spring.supermandiary.domain.constructor.Product;
 import com.lodong.spring.supermandiary.domain.usercustomer.UserCustomer;
 import lombok.*;
 
@@ -19,6 +20,7 @@ public class CustomerInterestService {
     @JoinColumn(name = "customer_id")
     private UserCustomer userCustomer;
 
-    @Column(name = "service_name")
-    private String serviceName;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id")
+    private Product product;
 }

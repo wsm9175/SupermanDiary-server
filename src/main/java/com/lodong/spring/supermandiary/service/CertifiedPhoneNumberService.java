@@ -32,6 +32,5 @@ public class CertifiedPhoneNumberService {
             System.out.println(e.getMessage());
             System.out.println(e.getCode());
         }
-
     }
 }

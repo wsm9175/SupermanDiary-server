@@ -20,4 +20,7 @@ public class MyWorkDto {
     private LocalTime estimateWorkTime;
     private boolean isIsFileIn;
     private boolean isIsComplete;
+    private boolean isIsMine;
+    private String workerName;
+    private String workerId;
 }

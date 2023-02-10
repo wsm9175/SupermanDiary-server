@@ -36,7 +36,7 @@ public class MainService {
     private final WorkingRepository workingRepository;
 
     //private final String STORAGE_ROOT_PATH = "/home/lodong/TestStorage/";
-    private final String STORAGE_ROOT_PATH = "/storage/";
+    private final String STORAGE_ROOT_PATH = "/app/";
     private final String File_PATH = "work-file/";
 
     private final FileRepository fileRepository;
@@ -47,12 +47,13 @@ public class MainService {
 
     @Transactional(readOnly = true)
     public List<MyWorkDto> getMyWork(String userUuid, String constructorId) {
+
         List<WorkDetail> workDetailList = workDetailRepository
-                .findByUserConstructorIdAndWorkingConstructorId(userUuid, constructorId)
-                .orElseThrow(() -> new NullPointerException("오늘 작업이 존재하지 않습니다."));
+                .findByUserConstructorNotNullAndWorkingConstructorId(constructorId)
+                .orElseThrow(() -> new NullPointerException("작업이 존재하지 않습니다."));
         List<MyWorkDto> workDtos = new ArrayList<>();
 
-        workDetailList.stream().forEach(workDetail -> {
+        workDetailList.forEach(workDetail -> {
             String workId = workDetail.getWorking().getId();
             String workDetailId = workDetail.getId();
             String workLevel = workDetail.getName();
@@ -74,7 +75,10 @@ public class MainService {
                 homeDong = workDetail.getWorking().getOtherHomeDong();
                 homeHosu = workDetail.getWorking().getOtherHomeHosu();
             }
-            MyWorkDto myWorkDto = new MyWorkDto(workId, workDetailId, workLevel, workLevelId, productName, homeName, homeDong, homeHosu, estimateWorkDate, estimateWorkTime, isInFileIn, isIsComplete);
+            String workerName = workDetail.getUserConstructor().getName();
+            String workerId = workDetail.getUserConstructor().getId();
+            boolean isIsMine = workerId.equals(userUuid);
+            MyWorkDto myWorkDto = new MyWorkDto(workId, workDetailId, workLevel, workLevelId, productName, homeName, homeDong, homeHosu, estimateWorkDate, estimateWorkTime, isInFileIn, isIsComplete, isIsMine,workerName, workerId);
             workDtos.add(myWorkDto);
         });
         return workDtos;
@@ -178,7 +182,7 @@ public class MainService {
     public MyInfoDTO getMyInfo(String myUuid) throws NullPointerException {
         UserConstructor userConstructor = userConstructorRepository.findById(myUuid).orElseThrow(() -> new NullPointerException("유저 정보를 조회할 수 없습니다."));
         AffiliatedInfo affiliatedInfo = affiliatedInfoRepository.findByUserConstructor(userConstructor).orElse(null);
-        List<String> techList = Optional.ofNullable(userConstructor.getUserConstructorTeches()).orElseGet(Collections::emptyList).stream().map(UserConstructorTech::getTechName).toList();
+        List<String> techList = Optional.ofNullable(userConstructor.getUserConstructorTeches()).orElseGet(Collections::emptyList).stream().map(userConstructorTech -> userConstructorTech.getProduct().getName()).toList();
         if (affiliatedInfo == null) {
             return new MyInfoDTO(userConstructor.getName(), userConstructor.getPhoneNumber(), userConstructor.getEmail(), userConstructor.getCareer(), null, techList, userConstructor.isActive());
         } else{

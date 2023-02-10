@@ -1,37 +1,46 @@
 package com.lodong.spring.supermandiary.domain.chat;
-
-import com.google.common.base.Strings;
 import lombok.*;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+
+@NamedEntityGraph(
+        name = "get-with-all-chatmessage", attributeNodes = {
+        @NamedAttributeNode(value = "chatRoom"),
+        }
+)
 
 @Entity
-@Getter @Setter @ToString @Builder
-@AllArgsConstructor @NoArgsConstructor
-public class ChatMessage implements Serializable {
+@Getter
+@Setter
+@ToString
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class ChatMessage{
     @Id
     private String id;
+    @Column(nullable = false)
     private boolean confirmed;
+    @Column(nullable = false)
     private String message;
+    @Column(nullable = true)
     private String receiver;
+    @Column(nullable = false)
     private String sender;
-    private String timestamp;
-    @ManyToOne
-    private ChatRoom room;
-    @Transient
-    private String senderNickName;
-    @Transient
-    private String receiverNickName;
-    @Transient
-    private String roomId;
+    @Column(nullable = false)
+    private LocalDateTime createAt;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "chat_room_id", nullable = false, referencedColumnName = "id")
+    private ChatRoom chatRoom;
+    @Column(nullable = false)
+    private boolean isConstructorSend;
+    @Column(nullable = false)
+    private String type;
 
-    @PrePersist
-    public void prePersist() {
-        if(Strings.isNullOrEmpty(timestamp)) this.timestamp = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(LocalDateTime.now());
-        this.confirmed = false;
-    }
+    @Column(nullable = false)
+    private String senderName;
 
+    @Column(nullable = false)
+    private String receiverName;
 }

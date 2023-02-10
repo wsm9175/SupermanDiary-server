@@ -10,4 +10,7 @@ import java.util.Optional;
 public interface InviteRepository extends JpaRepository<Invite, String> {
     @EntityGraph(value = "get-all-with", type = EntityGraph.EntityGraphType.LOAD)
     public List<Invite> findByConstructorIdAndSignComplete(String constructorId, boolean isSignComplete);
+
+    @EntityGraph(value = "get-all-with", type = EntityGraph.EntityGraphType.LOAD)
+    public Optional<List<Invite>> findByPhoneNumberAndSignComplete(String constructorId, boolean isSignComplete);
 }

@@ -1,7 +1,0 @@
-package com.lodong.spring.supermandiary.repo;
-
-import com.lodong.spring.supermandiary.domain.constructor.ConstructorTechDetail;
-import org.springframework.data.jpa.repository.JpaRepository;
-
-public interface ConstructorTechDetailRepository extends JpaRepository<ConstructorTechDetail, String> {
-}

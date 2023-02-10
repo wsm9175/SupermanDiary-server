@@ -26,7 +26,8 @@ import java.util.List;
                 @NamedAttributeNode("apartment"),
                 @NamedAttributeNode("otherHome"),
                 @NamedAttributeNode("userCustomer"),
-                @NamedAttributeNode(value = "workDetails")
+                @NamedAttributeNode(value = "workDetails"),
+                @NamedAttributeNode(value = "nowWorkInfo")
         })
 })
 public class Working {

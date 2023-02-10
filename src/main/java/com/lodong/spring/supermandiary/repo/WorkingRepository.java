@@ -15,6 +15,7 @@ import java.util.Optional;
 public interface WorkingRepository extends JpaRepository<Working, String> {
     @EntityGraph(value = "get-estimate-info", type = EntityGraph.EntityGraphType.LOAD)
     Optional<Working> findByIdAndConstructorId(String id, String constructorId);
+    @EntityGraph(value = "get-estimate-info", type = EntityGraph.EntityGraphType.LOAD)
     Optional<List<Working>> findByConstructor(Constructor constructor);
     Optional<List<Working>> findByConstructorIdAndNonMemberPhoneNumber(String constructorId, String phoneNumber);
     Optional<List<Working>> findByConstructorIdAndUserCustomer_PhoneNumbers_phoneNumber(String constructorId, String phoneNumber);

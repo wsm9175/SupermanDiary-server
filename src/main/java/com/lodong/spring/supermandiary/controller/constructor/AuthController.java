@@ -1,14 +1,15 @@
 package com.lodong.spring.supermandiary.controller.constructor;
 
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
-import com.lodong.spring.supermandiary.domain.constructor.ConstructorTechDetail;
+import com.lodong.spring.supermandiary.domain.constructor.ConstructorProductDTOS;
 import com.lodong.spring.supermandiary.domain.file.FileList;
 import com.lodong.spring.supermandiary.domain.userconstructor.AffiliatedInfo;
 import com.lodong.spring.supermandiary.domain.userconstructor.UserConstructor;
-import com.lodong.spring.supermandiary.domain.userconstructor.UserConstructorTech;
 import com.lodong.spring.supermandiary.dto.*;
 import com.lodong.spring.supermandiary.dto.address.AddressDTO;
 import com.lodong.spring.supermandiary.dto.auth.ConstructorIdDTO;
+import com.lodong.spring.supermandiary.dto.auth.DuplicateCheckDTO;
+import com.lodong.spring.supermandiary.dto.auth.ProductInfoDTO;
 import com.lodong.spring.supermandiary.dto.jwt.TokenRequestDTO;
 import com.lodong.spring.supermandiary.jwt.TokenInfo;
 import com.lodong.spring.supermandiary.enumvalue.PermissionEnum;
@@ -41,7 +42,7 @@ public class AuthController {
     }
 
     @PostMapping("/registration-user")
-    public ResponseEntity<?> registration(@RequestPart UserConstructorDTO user, @RequestPart List<UserConstructorTechDTO> jsonArray
+    public ResponseEntity<?> registration(@RequestPart UserConstructorDTO user/*@RequestPart List<UserConstructorTechDTO> jsonArray*/
             , @RequestPart ConstructorIdDTO constructorId) {
         log.info("user data received");
         log.info("user : " + user.toString());
@@ -67,7 +68,7 @@ public class AuthController {
                 .roles(Collections.singletonList(PermissionEnum.USER.name()))
                 .sex(user.getSex())
                 .build();
-        List<UserConstructorTech> userConstructorTechList = new ArrayList<>();
+       /* List<UserConstructorTech> userConstructorTechList = new ArrayList<>();
 
         for (UserConstructorTechDTO userConstructorTechDTO : jsonArray) {
             log.info(userConstructorTechDTO.toString());
@@ -77,7 +78,7 @@ public class AuthController {
                     .techName(userConstructorTechDTO.getName())
                     .build();
             userConstructorTechList.add(userConstructorTech);
-        }
+        }*/
 
         Constructor constructor = Constructor.builder()
                 .id(constructorId.getConstructorId())
@@ -89,7 +90,7 @@ public class AuthController {
                 .build();
 
         try {
-            authService.register(userConstructorEncode, userConstructorTechList, affiliatedInfo);
+            authService.register(userConstructorEncode, affiliatedInfo);
         } catch (IllegalStateException illegalStateException) {
             log.info(illegalStateException.getMessage());
             StatusEnum status = StatusEnum.BAD_REQUEST;
@@ -114,9 +115,10 @@ public class AuthController {
 
     @PostMapping(value = "/registration-constructor", consumes = {"multipart/form-data"})
     public ResponseEntity<?> registrationConstructor(@RequestPart("file") MultipartFile file, @RequestPart ConstructorDTO constructorDTO,
-                                                     @RequestPart List<ConstructorTechDetailDTO> jsonArray, @RequestPart AddressDTO addressDTO, @RequestPart UserConstructorDTO user) {
+                                                     @RequestPart(required = false) ConstructorProductDTOS constructorProductDTOS, @RequestPart AddressDTO addressDTO, @RequestPart UserConstructorDTO user) {
         log.info(constructorDTO.toString());
         log.info(file.getOriginalFilename());
+        log.info(constructorProductDTOS.toString());
 
         //유저 정보 세팅
         UserConstructor userConstructorEncode = UserConstructor.builder()
@@ -133,7 +135,7 @@ public class AuthController {
                 .ageGroup(user.getAgeGroup())
                 .career(user.getCareer())
                 .sex(user.getSex())
-                .roles(Collections.singletonList(PermissionEnum.USER.name()))
+                .roles(Collections.singletonList(PermissionEnum.ADMIN.name()))
                 .build();
 
         UserConstructor userConstructorForLogin = UserConstructor.builder()
@@ -160,27 +162,17 @@ public class AuthController {
                 .extension(file.getContentType())
                 .build();
 
-        List<ConstructorTechDetail> constructorTechDetailList = new ArrayList<>();
-
-        //사업자 보유 기술 세팅
-        for (ConstructorTechDetailDTO constructorTechDetailDTO : jsonArray) {
-            log.info(constructorTechDetailDTO.toString());
-            ConstructorTechDetail constructorTechDetail = ConstructorTechDetail.builder()
-                    .id(UUID.randomUUID().toString())
-                    .constructorId(constructor.getId())
-                    .name(constructorDTO.getName())
-                    .build();
-
-            constructorTechDetailList.add(constructorTechDetail);
-        }
-
         AffiliatedInfo affiliatedInfo = AffiliatedInfo.builder()
                 .constructor(constructor)
                 .userConstructor(userConstructorEncode)
                 .build();
 
         try {
-            authService.registerConstructor(userConstructorEncode, constructor, fileList, file, addressDTO, constructorTechDetailList, affiliatedInfo);
+            if(constructorProductDTOS == null){
+                constructorProductDTOS = new ConstructorProductDTOS();
+                constructorProductDTOS.setConstructorProductDTOList(new ArrayList<>());
+            }
+            authService.registerConstructor(userConstructorEncode, constructor, fileList, file, addressDTO, constructorProductDTOS.getConstructorProductDTOList(), affiliatedInfo);
         } catch (IllegalStateException illegalStateException) {
             StatusEnum status = StatusEnum.BAD_REQUEST;
             String message = illegalStateException.getMessage();
@@ -202,9 +194,10 @@ public class AuthController {
     }
 
     @PostMapping("/duplicate-check")
-    public @ResponseBody boolean duplicateCheck(@RequestBody PhoneNumberDTO phoneNumber) {
+    public ResponseEntity<?> duplicateCheck(@RequestBody PhoneNumberDTO phoneNumber) {
         log.info("phone number received");
-        return authService.isDuplicated(phoneNumber.getPhoneNumber());
+        DuplicateCheckDTO duplicateCheckDTO =  authService.isDuplicateAndInvite(phoneNumber.getPhoneNumber());
+        return getResponseMessage(StatusEnum.OK, "중복검사 및 초대 여부 결과", duplicateCheckDTO);
     }
 
     @GetMapping("/send-sms")
@@ -269,7 +262,11 @@ public class AuthController {
         return getResponseMessage(statusEnum, message, tokenInfo);
     }
 
-    
+    @GetMapping("/product-list")
+    public ResponseEntity<?> getProductList(){
+        List<ProductInfoDTO> productInfoDTOS = authService.getProductList();
+        return getResponseMessage(StatusEnum.OK, "상품 목록", productInfoDTOS);
+    }
 
     private TokenInfo loginAfterRegister(UserConstructor userConstructor) throws Exception {
         TokenInfo tokenInfo = authService.auth(userConstructor);

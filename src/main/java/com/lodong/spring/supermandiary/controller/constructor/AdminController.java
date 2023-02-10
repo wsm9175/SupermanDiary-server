@@ -85,6 +85,16 @@ public class AdminController {
             return getResponseMessage(statusEnum, message);
         }
     }
+    @PatchMapping("/alter/product")
+    public ResponseEntity<?> getWorkArea(@RequestHeader(name = "Authorization") String token, @RequestBody ConstructorProductAlterDTO constructorProductAlterDTO){
+        try{
+            adminService.alterProduct(constructorProductAlterDTO);
+            return getResponseMessage(StatusEnum.OK, "상품 프로세스가 수정되었습니다.", null);
+        }catch (NullPointerException nullPointerException){
+            nullPointerException.printStackTrace();
+            return getResponseMessage(StatusEnum.BAD_REQUEST, nullPointerException.getMessage());
+        }
+    }
     @PutMapping("/pay/activate")
     public ResponseEntity<?> activatePayManage(@RequestHeader(name = "Authorization") String token, boolean activate){
         String constructorId;
@@ -311,10 +321,14 @@ public class AdminController {
 
     @PostMapping("/invite")
     public ResponseEntity<?> inviteMember(@RequestHeader(name = "Authorization") String token, @RequestBody InviteDto invite) {
-        adminService.inviteMember(getConstructorId(token), invite);
-        StatusEnum statusEnum = StatusEnum.OK;
-        String message = "초대 성공";
-        return getResponseMessage(statusEnum, message, null);
+        try {
+            adminService.inviteMember(getConstructorId(token), invite);
+            return getResponseMessage(StatusEnum.OK, "초대 성공", null);
+        }catch (NullPointerException n){
+            n.printStackTrace();
+            return getResponseMessage(StatusEnum.BAD_REQUEST, n.getMessage(), null);
+        }
+
     }
 
     @GetMapping("/sales")

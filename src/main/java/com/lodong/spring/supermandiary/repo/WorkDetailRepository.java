@@ -24,6 +24,8 @@ public interface WorkDetailRepository extends JpaRepository<WorkDetail, String> 
 
     @EntityGraph(value = "workDetail-with-all", type = EntityGraph.EntityGraphType.LOAD)
     public Optional<List<WorkDetail>> findByUserConstructorIdAndWorkingConstructorId(String userId, String constructorId);
+    @EntityGraph(value = "workDetail-with-all", type = EntityGraph.EntityGraphType.LOAD)
+    public Optional<List<WorkDetail>> findByUserConstructorNotNullAndWorkingConstructorId(String constructorId);
 
     @Transactional
     @Modifying

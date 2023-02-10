@@ -40,6 +40,8 @@ public class CreateService {
     private final OtherHomeRepository otherHomeRepository;
     private final ConstructorAlarmRepository constructorAlarmRepository;
     private final UserCustomerAlarmRepository userCustomerAlarmRepository;
+    private final EstimateDetailRepository estimateDetailRepository;
+    private final DiscountRepository discountRepository;
 
     @Transactional(readOnly = true)
     public List<RequestOrderDto> getRequestOrderList(String token) throws NullPointerException {
@@ -130,7 +132,11 @@ public class CreateService {
 
             Estimate estimate = Estimate.builder().id(UUID.randomUUID().toString())
                     .constructorProduct(constructorProduct)
-                    .constructor(constructor).requestOrder(requestOrder).note(sendEstimateDto.getNote()).remark(sendEstimateDto.getRemark()).price(sendEstimateDto.getPrice())
+                    .constructor(constructor)
+                    .requestOrder(requestOrder)
+                    .note(sendEstimateDto.getNote())
+                    .remark(sendEstimateDto.getRemark())
+                    .price(sendEstimateDto.getPrice())
                     .isVat(sendEstimateDto.isVat())
                     .status(EstimateEnum.SEND.label())
                     .build();
@@ -232,21 +238,23 @@ public class CreateService {
     @Transactional
     public void reSendEstimate(String constructorId, ReSendEstimateDTO reSendEstimateDto) throws NullPointerException {
         Constructor constructor = Constructor.builder().id(constructorId).build();
-        ConstructorProduct constructorProduct = ConstructorProduct.builder().id(reSendEstimateDto.getProductId()).build();
+        ConstructorProduct constructorProduct = constructorProductRepository.findById(reSendEstimateDto.getProductId()).orElseThrow(() -> new NullPointerException("등록되지 않은 시공사 상품입니다."));
         if (reSendEstimateDto.getRequestOrderId() != null) { //회원 견적서
             RequestOrder requestOrder = requestOrderRepository
                     .findById(reSendEstimateDto.getRequestOrderId())
-                    .orElseThrow(() -> new NullPointerException("해당 견적서는 존재하지 않습니다."));
-            estimateRepository.deleteById(reSendEstimateDto.getEstimateId());
+                    .orElseThrow(() -> new NullPointerException("해당 전자 계약서는 존재하지 않습니다."));
             List<EstimateDetail> estimateDetails = new ArrayList<>();
 
-            Estimate estimate = Estimate.builder().id(UUID.randomUUID().toString())
-                    .constructorProduct(constructorProduct)
-                    .constructor(constructor).requestOrder(requestOrder).note(reSendEstimateDto.getNote()).remark(reSendEstimateDto.getRemark()).price(reSendEstimateDto.getPrice())
-                    .isVat(reSendEstimateDto.isVat())
-                    .status(EstimateEnum.SEND.label())
-                    .build();
-
+            Estimate estimate = estimateRepository.findById(reSendEstimateDto.getEstimateId()).orElseThrow(() -> new NullPointerException("해당 견적서는 존재하지 않습니다."));
+            estimate.setConstructorProduct(constructorProduct);
+            estimate.setRequestOrder(requestOrder);
+            estimate.setNote(reSendEstimateDto.getNote());
+            estimate.setRemark(reSendEstimateDto.getRemark());
+            estimate.setPrice(reSendEstimateDto.getPrice());
+            estimate.setVat(reSendEstimateDto.isVat());
+            estimate.setStatus(EstimateEnum.SEND.label());
+            estimateDetailRepository.deleteAllByEstimate(estimate);
+            discountRepository.deleteAllByEstimate(estimate);
             for (EstimateDetailDto estimateDetailDto : reSendEstimateDto.getEstimateDetails()) {
                 EstimateDetail estimateDetail = EstimateDetail.builder().id(UUID.randomUUID().toString()).estimate(estimate).productName(estimateDetailDto.getProductName()).count(estimateDetailDto.getCount()).price(estimateDetailDto.getPrice()).build();
                 estimateDetails.add(estimateDetail);
@@ -259,7 +267,7 @@ public class CreateService {
             estimate.setEstimateDetails(estimateDetails);
             estimate.setDiscountList(discountList);
             estimate.setStatus(EstimateEnum.SEND.label());
-            estimateRepository.save(estimate);
+
             //전자 계약서 요청건 상태 처리중으로 변경
             requestOrder.setStatus(RequestOrderEnum.PROCESSING.label());
             requestOrderRepository.save(requestOrder);
@@ -314,19 +322,20 @@ public class CreateService {
                 .orElseThrow(() -> new NullPointerException("시공사가 존재하지 않습니다."));
         UserCustomer userCustomer = userCustomerRepository
                 .findById(sendEstimateDto.getCustomerId())
-                .orElseThrow(()->new NullPointerException("해당 고객은 존재하지 않습니다."));
-        ConstructorProduct constructorProduct =  constructorProductRepository
+                .orElseThrow(() -> new NullPointerException("해당 고객은 존재하지 않습니다."));
+        ConstructorProduct constructorProduct = constructorProductRepository
                 .findById(sendEstimateDto.getProductId())
-                .orElseThrow(()->new NullPointerException("해당 물건은 존재하지 않습니다."));
+                .orElseThrow(() -> new NullPointerException("해당 물건은 존재하지 않습니다."));
         RequestOrder requestOrder = null;
         if (sendEstimateDto.getApartmentCode() != null) {
             Apartment apartment = apartmentRepository
                     .findById(sendEstimateDto.getApartmentCode())
-                    .orElseThrow(()->new NullPointerException("해당 아파트는 존재하지 않습니다."));
+                    .orElseThrow(() -> new NullPointerException("해당 아파트는 존재하지 않습니다."));
             requestOrder = RequestOrder.builder()
                     .id(UUID.randomUUID().toString())
                     .constructor(constructor)
                     .customer(userCustomer)
+                    .phoneNumber(sendEstimateDto.getPhoneNumber())
                     .apartment(apartment)
                     .apartment_type(sendEstimateDto.getApartmentType())
                     .dong(sendEstimateDto.getApartmentDong())
@@ -339,16 +348,18 @@ public class CreateService {
                     .isConfirmationConstruct(sendEstimateDto.isConfirmationConstruct())
                     .isCashReceipt(sendEstimateDto.isCashReceipt())
                     .constructorProduct(constructorProduct)
+                    .createAt(LocalDateTime.now())
                     .build();
         } else if (sendEstimateDto.getOtherHomeId() != null) {
             OtherHome otherHome = otherHomeRepository
                     .findById(sendEstimateDto.getOtherHomeId())
-                    .orElseThrow(()->new NullPointerException("해당 건물은 존재하지 않습니다."));
+                    .orElseThrow(() -> new NullPointerException("해당 건물은 존재하지 않습니다."));
             requestOrder = RequestOrder.builder()
                     .id(UUID.randomUUID().toString())
                     .constructor(constructor)
                     .customer(userCustomer)
                     .note(sendEstimateDto.getNote())
+                    .phoneNumber(sendEstimateDto.getPhoneNumber())
                     .otherHome(otherHome)
                     .otherHomeType(sendEstimateDto.getOtherHomeType())
                     .otherHomeDong(sendEstimateDto.getOtherHomeDong())
@@ -360,6 +371,7 @@ public class CreateService {
                     .isConfirmationConstruct(sendEstimateDto.isConfirmationConstruct())
                     .isCashReceipt(sendEstimateDto.isCashReceipt())
                     .constructorProduct(constructorProduct)
+                    .createAt(LocalDateTime.now())
                     .build();
         }
 
@@ -391,7 +403,7 @@ public class CreateService {
         sendAlarm(userCustomer, CustomerAlarmEnum.RECEIVE_ESTIMATE, estimate.getId());
     }
 
-    private void sendAlarm(UserCustomer userCustomer, CustomerAlarmEnum customerAlarmEnum, String content){
+    private void sendAlarm(UserCustomer userCustomer, CustomerAlarmEnum customerAlarmEnum, String content) {
         UserCustomerAlarm userCustomerAlarm = UserCustomerAlarm.builder()
                 .id(UUID.randomUUID().toString())
                 .userCustomer(userCustomer)
