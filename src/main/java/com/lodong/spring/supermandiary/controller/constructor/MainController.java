@@ -1,9 +1,7 @@
 package com.lodong.spring.supermandiary.controller.constructor;
+
 import com.lodong.spring.supermandiary.domain.userconstructor.AffiliatedInfo;
-import com.lodong.spring.supermandiary.dto.main.AlarmDTO;
-import com.lodong.spring.supermandiary.dto.main.MyInfoDTO;
-import com.lodong.spring.supermandiary.dto.main.MyWorkDto;
-import com.lodong.spring.supermandiary.dto.main.ReadAllAlarmDTO;
+import com.lodong.spring.supermandiary.dto.main.*;
 import com.lodong.spring.supermandiary.jwt.JwtTokenProvider;
 import com.lodong.spring.supermandiary.responseentity.StatusEnum;
 import com.lodong.spring.supermandiary.service.MyInfoService;
@@ -32,94 +30,105 @@ public class MainController {
         this.myInfoService = myInfoService;
         this.mainService = mainService;
     }
+
     @GetMapping("/my/work")
-    public ResponseEntity<?> getMyWork(@RequestHeader("Authorization") String token){
+    public ResponseEntity<?> getMyWork(@RequestHeader("Authorization") String token) {
         String myUuid = getMyUuid(token);
         String constructorId = getConstructorId(myUuid);
 
-        List<MyWorkDto> myWorkDtos =  mainService.getMyWork(myUuid, constructorId);
+        List<MyWorkDto> myWorkDtos = mainService.getMyWork(myUuid, constructorId);
         StatusEnum statusEnum = StatusEnum.OK;
         String message = "나의 작업 목록";
         return getResponseMessage(statusEnum, message, myWorkDtos);
     }
 
     @PostMapping("/complete/work/no-file")
-    public ResponseEntity<?> completeWorkNoFile(String workDetail){
-        try{
-            mainService.completeWorkNoFile(workDetail);
+    public ResponseEntity<?> completeWorkNoFile(String workDetail) {
+        try {
+            NextWorkDetailDTO nextWorkDetailDTO = mainService.completeWorkNoFile(workDetail);
             StatusEnum statusEnum = StatusEnum.OK;
             String message = workDetail + " 작업 완료 성공";
-            return getResponseMessage(statusEnum, message, null);
-        }catch (Exception e){
+            return getResponseMessage(statusEnum, message, nextWorkDetailDTO);
+        } catch (Exception e) {
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = "작업 완료 실패 " + e.getMessage();
             return getResponseMessage(statusEnum, message);
         }
     }
+
     @PostMapping("/complete/work")
     public ResponseEntity<?> completeWork(@RequestPart(value = "images", required = false) List<MultipartFile> files,
-                                          @RequestPart(value = "workDetail") String workDetail){
-        try{
-            mainService.completeWork(files,workDetail.replace("\"", ""));
+                                          @RequestPart(value = "workDetail") String workDetail) {
+        try {
+            NextWorkDetailDTO nextWorkDetailDTO = mainService.completeWork(files, workDetail.replace("\"", ""));
             StatusEnum statusEnum = StatusEnum.OK;
             String message = workDetail + " 작업 완료 성공";
-            return getResponseMessage(statusEnum, message, null);
-        }catch (IOException ioException){
+            return getResponseMessage(statusEnum, message, nextWorkDetailDTO);
+        } catch (IOException ioException) {
             ioException.printStackTrace();
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = "작업 완료 실패 : 파일저장 오류";
             return getResponseMessage(statusEnum, message);
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
-            String message = "작업 완료 실패 " + e.getMessage();
+            String message = "작업 완료 실패 :" + e.getMessage();
             return getResponseMessage(statusEnum, message);
         }
     }
 
     @PutMapping("/complete/working/pay")
-    public ResponseEntity<?> completePay(String workId, String method){
+    public ResponseEntity<?> completePay(String workId, String method) {
         mainService.completeWorkingPay(workId, method);
         return getResponseMessage(StatusEnum.OK, "결제완료", null);
     }
 
     @GetMapping("/alarm")
-    public ResponseEntity<?> getAlarm(@RequestHeader(name = "Authorization") String token){
-        try{
+    public ResponseEntity<?> getAlarm(@RequestHeader(name = "Authorization") String token) {
+        try {
             String myUuid = getMyUuid(token);
             String constructorId = getConstructorId(myUuid);
             List<AlarmDTO> alarmDTOS = mainService.getAlarmList(constructorId);
             return getResponseMessage(StatusEnum.OK, "알림 목록", alarmDTOS);
-        }catch (NullPointerException nullPointerException) {
+        } catch (NullPointerException nullPointerException) {
             nullPointerException.printStackTrace();
             return getResponseMessage(StatusEnum.BAD_REQUEST, nullPointerException.getMessage());
         }
     }
 
     @PatchMapping("/alarm/read")
-    public ResponseEntity<?> readAlarm(@RequestHeader(name = "Authorization") String token, String alarmId){
-        try{
+    public ResponseEntity<?> readAlarm(@RequestHeader(name = "Authorization") String token, String alarmId) {
+        try {
             mainService.readAlarm(alarmId);
             return getResponseMessage(StatusEnum.OK, "알림 읽음 처리", null);
-        }catch (NullPointerException nullPointerException){
+        } catch (NullPointerException nullPointerException) {
             nullPointerException.printStackTrace();
             return getResponseMessage(StatusEnum.BAD_REQUEST, nullPointerException.getMessage());
         }
     }
 
     @GetMapping("/my")
-    public ResponseEntity<?> getMyInfo(@RequestHeader(name = "Authorization") String token){
-        try{
+    public ResponseEntity<?> getMyInfo(@RequestHeader(name = "Authorization") String token) {
+        try {
             MyInfoDTO myInfoDTO = mainService.getMyInfo(getMyUuid(token));
             return getResponseMessage(StatusEnum.OK, "내정보", myInfoDTO);
-        }catch (NullPointerException nullPointerException) {
+        } catch (NullPointerException nullPointerException) {
             nullPointerException.printStackTrace();
             return getResponseMessage(StatusEnum.BAD_REQUEST, nullPointerException.getMessage());
         }
     }
-
+    @GetMapping("/pay-manage")
+    private ResponseEntity<?> isAutoPay(@RequestHeader(name = "Authorization") String token) {
+        try{
+            PayActivationDTO payActivationDTO = mainService.isPayActivation(getConstructorId(getMyUuid(token)));
+            return getResponseMessage(StatusEnum.OK, "자동결제여부", payActivationDTO);
+        } catch (NullPointerException nullPointerException) {
+            nullPointerException.printStackTrace();
+            return getResponseMessage(StatusEnum.BAD_REQUEST, nullPointerException.getMessage());
+        }
+    }
     @PatchMapping("/alarm/read-all")
-    public ResponseEntity<?> readAllAlarm(@RequestHeader(name = "Authorization") String token, @RequestBody ReadAllAlarmDTO readAllAlarmDTO){
+    public ResponseEntity<?> readAllAlarm(@RequestHeader(name = "Authorization") String token, @RequestBody ReadAllAlarmDTO readAllAlarmDTO) {
         mainService.readAllAlarm(readAllAlarmDTO);
         return getResponseMessage(StatusEnum.OK, "모든 알림 읽음 처리", null);
     }
@@ -129,7 +138,7 @@ public class MainController {
         return affiliatedInfo.getConstructor().getId();
     }
 
-    private String getMyUuid(String token) throws NullPointerException{
+    private String getMyUuid(String token) throws NullPointerException {
         return jwtTokenProvider.getUserUuid(token.substring(7));
     }
 }

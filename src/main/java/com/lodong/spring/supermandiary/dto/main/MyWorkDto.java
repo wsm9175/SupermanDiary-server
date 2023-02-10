@@ -23,4 +23,5 @@ public class MyWorkDto {
     private boolean isIsMine;
     private String workerName;
     private String workerId;
+    private String status;
 }

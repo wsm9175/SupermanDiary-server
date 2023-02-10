@@ -57,6 +57,7 @@ public class AdminService {
                 workListDto.setSequence(constructorProductWorkList.getSequence());
                 workListDto.setWorkName(constructorProductWorkList.getName());
                 workListDto.setFileIn(constructorProductWorkList.isFileIn());
+                workListDto.setStatus(constructorProductWorkList.getStatus());
                 workListDtos.add(workListDto);
             }
             constructorProductWorkDto.setWorkList(workListDtos);
@@ -102,6 +103,7 @@ public class AdminService {
                     .sequence(productWorkDto.getSequence())
                     .name(productWorkDto.getName())
                     .isFileIn(productWorkDto.isFileIn())
+                    .status(productWorkDto.getStatus())
                     .build();
             constructorProductWorkLists.add(constructorProductWorkList);
         }

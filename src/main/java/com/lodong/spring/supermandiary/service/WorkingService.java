@@ -246,6 +246,7 @@ public class WorkingService {
                         }
                         workLevelDto.setFileNameList(fileNameList);
                     }
+                    workLevelDto.setStatus(workDetail.getStatus());
                     workLevelDtos.add(workLevelDto);
                 });
 

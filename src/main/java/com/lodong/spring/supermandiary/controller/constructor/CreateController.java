@@ -94,6 +94,7 @@ public class CreateController {
             return getResponseMessage(statusEnum, message);
         }
     }
+
     @PostMapping("/send/estimate/non-member")
     public ResponseEntity<?> sendEstimateNoneMember(@RequestHeader(name = "Authorization") String token, @RequestBody SendEstimateDto sendEstimate) {
         String constructorId = getConstructorId(token);
@@ -116,7 +117,7 @@ public class CreateController {
     }
 
     @PutMapping("/re-send/estimate")
-    public ResponseEntity<?> reSendEstimate(@RequestHeader(name = "Authorization") String token, @RequestBody ReSendEstimateDTO reSendEstimate){
+    public ResponseEntity<?> reSendEstimate(@RequestHeader(name = "Authorization") String token, @RequestBody ReSendEstimateDTO reSendEstimate) {
         String constructorId = getConstructorId(token);
         log.info("들어온 정보 : " + reSendEstimate.toString());
         try {
@@ -137,18 +138,18 @@ public class CreateController {
     }
 
     @PostMapping("/send/estimate/member-meet")
-    public ResponseEntity<?> sendEstimateMemberMeet(@RequestHeader(name = "Authorization") String token, @RequestBody SendEstimateDto sendEstimateDto){
-        try{
+    public ResponseEntity<?> sendEstimateMemberMeet(@RequestHeader(name = "Authorization") String token, @RequestBody SendEstimateDto sendEstimateDto) {
+        try {
             createService.sendEstimateMemberMeet(getConstructorId(token), sendEstimateDto);
             return getResponseMessage(StatusEnum.OK, "계약서 전송 성공", null);
-        }catch (NullPointerException nullPointerException){
+        } catch (NullPointerException nullPointerException) {
             nullPointerException.printStackTrace();
             return getResponseMessage(StatusEnum.BAD_REQUEST, nullPointerException.getMessage());
         }
     }
 
     @PostMapping("/update/req-order/state")
-    public ResponseEntity<?> updateRequestOrderStatus(@RequestBody RequestOrderStatusDto requestOrderStatus){
+    public ResponseEntity<?> updateRequestOrderStatus(@RequestBody RequestOrderStatusDto requestOrderStatus) {
         try {
             log.info(requestOrderStatus.toString());
             createService.updateRequestStatus(requestOrderStatus);
@@ -168,12 +169,24 @@ public class CreateController {
     }
 
     @GetMapping("/get/customer-info")
-    public ResponseEntity<?> getCustomerData(String customerPhoneNumber){
-        try{
+    public ResponseEntity<?> getCustomerData(String customerPhoneNumber) {
+        try {
             CustomerDTO customerDTO = createService.getCustomerInfo(customerPhoneNumber);
             return getResponseMessage(StatusEnum.OK, "회원정보 가져오기 성공", customerDTO);
-        }catch (NullPointerException nullPointerException){
+        } catch (NullPointerException nullPointerException) {
             return getResponseMessage(StatusEnum.BAD_REQUEST, nullPointerException.getMessage());
         }
     }
+
+    @GetMapping("/search/apartment")
+    public ResponseEntity<?> getApartmentList(String keyword) {
+        try {
+            List<ApartmentDTO> apartmentDTOS = createService.getApartmentList(keyword);
+            return getResponseMessage(StatusEnum.OK, "검색결과가 존재합니다.", apartmentDTOS);
+        } catch (NullPointerException nullPointerException) {
+            nullPointerException.printStackTrace();
+            return getResponseMessage(StatusEnum.BAD_REQUEST, nullPointerException.getMessage());
+        }
+    }
+
 }

@@ -24,6 +24,9 @@ public class ConstructorProductWorkList {
     @Column(nullable = false)
     private boolean isFileIn;
 
+    @Column(nullable = true)
+    private String status;
+
     @PrePersist
     public void prePersist() {
 

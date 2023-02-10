@@ -1,6 +1,8 @@
 package com.lodong.spring.supermandiary.service;
 
 import com.lodong.spring.supermandiary.domain.*;
+import com.lodong.spring.supermandiary.domain.address.SidoAreas;
+import com.lodong.spring.supermandiary.domain.address.SiggAreas;
 import com.lodong.spring.supermandiary.domain.admin.ConstructorProductWorkList;
 import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import com.lodong.spring.supermandiary.domain.constructor.ConstructorProduct;
@@ -18,6 +20,7 @@ import com.lodong.spring.supermandiary.enumvalue.CustomerAlarmEnum;
 import com.lodong.spring.supermandiary.enumvalue.EstimateEnum;
 import com.lodong.spring.supermandiary.enumvalue.RequestOrderEnum;
 import com.lodong.spring.supermandiary.repo.*;
+import com.lodong.spring.supermandiary.repo.address.SiggAreasRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -42,6 +46,7 @@ public class CreateService {
     private final UserCustomerAlarmRepository userCustomerAlarmRepository;
     private final EstimateDetailRepository estimateDetailRepository;
     private final DiscountRepository discountRepository;
+    private final SiggAreasRepository siggAreasRepository;
 
     @Transactional(readOnly = true)
     public List<RequestOrderDto> getRequestOrderList(String token) throws NullPointerException {
@@ -53,7 +58,7 @@ public class CreateService {
 
         for (RequestOrder requestOrder : requestOrderList) {
             RequestOrderDto requestOrderDto = new RequestOrderDto();
-            if (requestOrder.getStatus().equals(RequestOrderEnum.DELETE.label()) || requestOrder.getStatus().equals(RequestOrderEnum.PROCESSED.label())) {
+            if (requestOrder.getStatus().equals(RequestOrderEnum.DELETE.label())) {
                 continue;
             }
 
@@ -98,6 +103,7 @@ public class CreateService {
                         estimate.getPrice(), estimateDetailDtos, discountList);
                 requestOrderDto.setRejectEstimateInfo(rejectEstimateDTO);
             }
+            requestOrderDto.setCreateAt(requestOrder.getCreateAt());
             requestOrderDtoList.add(requestOrderDto);
         }
         return requestOrderDtoList;
@@ -416,6 +422,26 @@ public class CreateService {
         userCustomerAlarmRepository.save(userCustomerAlarm);
     }
 
+    public List<ApartmentDTO> getApartmentList(String keyword) throws NullPointerException {
+        String searchKeyword = getSearchKeyword(keyword);
+
+        List<Apartment> apartments = apartmentRepository.findByNameLike(searchKeyword).orElseThrow(() -> new NullPointerException("검색결과가 없습니다."));
+        return apartments.stream()
+                .map(apartment -> {
+                    SiggAreas siggAreas = siggAreasRepository.findById(apartment.getSiggCode()).orElse(new SiggAreas());
+                    SidoAreas sidoAreas = siggAreas.getSidoAreas();
+                    String address = sidoAreas.getName() + " " + siggAreas.getName();
+                    return new ApartmentDTO(apartment.getId(), apartment.getName(), address);
+                }).toList();
+    }
+
+    private String getSearchKeyword(String keyword) {
+        String temp = keyword.replace(' ', '%');
+        String searchKeyword = "%" + temp + "%";
+        log.info(searchKeyword);
+        return searchKeyword;
+    }
+
     private String getStatus(String status) {
         if (status.equals(RequestOrderEnum.BASIC.label())) {
             return RequestOrderEnum.BASIC.label();
@@ -429,4 +455,6 @@ public class CreateService {
             return null;
         }
     }
+
+
 }

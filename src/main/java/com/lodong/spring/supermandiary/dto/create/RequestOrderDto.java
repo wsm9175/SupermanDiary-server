@@ -1,8 +1,10 @@
 package com.lodong.spring.supermandiary.dto.create;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -33,4 +35,7 @@ public class RequestOrderDto {
 
     //상태가 반려인 경우 해당 값이 존재
     private RejectEstimateDTO rejectEstimateInfo;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Seoul")
+    private LocalDateTime createAt;
 }

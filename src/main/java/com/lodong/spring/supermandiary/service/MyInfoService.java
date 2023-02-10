@@ -17,7 +17,6 @@ public class MyInfoService {
         UserConstructor userConstructor = UserConstructor.builder()
                 .id(uuid)
                 .build();
-        return affiliatedInfoRepository.findByUserConstructor(userConstructor).orElseThrow(
-                NullPointerException::new);
+        return affiliatedInfoRepository.findByUserConstructor(userConstructor).orElseThrow(NullPointerException::new);
     }
 }

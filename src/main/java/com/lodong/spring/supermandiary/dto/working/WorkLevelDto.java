@@ -19,5 +19,6 @@ public class WorkLevelDto {
     private String currentAssignedTask;
     private String currentAssignedTaskId;
     private boolean isFileIn;
+    private String status;
     private List<String> fileNameList = new ArrayList<>();
 }

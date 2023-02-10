@@ -36,7 +36,6 @@ public class WorkingController {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-
     @GetMapping("/work-area")
     private ResponseEntity<?> getWorkArea(@RequestHeader(name = "Authorization") String token) {
         String constructorId;

@@ -8,4 +8,5 @@ public class WorkListDto {
     private int sequence;
     private String workName;
     private boolean isFileIn;
+    private String status;
 }

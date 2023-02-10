@@ -8,4 +8,6 @@ import java.util.Optional;
 
 public interface ApartmentRepository extends JpaRepository<Apartment, String> {
     Optional<List<Apartment>> findBySiggCode(int siggCode);
+
+    Optional<List<Apartment>> findByNameLike(String keyword);
 }

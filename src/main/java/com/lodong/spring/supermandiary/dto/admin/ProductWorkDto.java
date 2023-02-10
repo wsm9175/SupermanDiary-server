@@ -7,4 +7,6 @@ public class ProductWorkDto {
     private int sequence;
     private String name;
     private boolean isFileIn;
+
+    private String status;
 }

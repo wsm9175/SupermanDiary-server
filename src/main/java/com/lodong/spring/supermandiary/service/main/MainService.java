@@ -1,22 +1,20 @@
 package com.lodong.spring.supermandiary.service.main;
 
+import com.lodong.spring.supermandiary.domain.constructor.Constructor;
 import com.lodong.spring.supermandiary.domain.constructor.ConstructorAlarm;
 import com.lodong.spring.supermandiary.domain.file.FileList;
 import com.lodong.spring.supermandiary.domain.file.WorkFile;
 import com.lodong.spring.supermandiary.domain.userconstructor.AffiliatedInfo;
 import com.lodong.spring.supermandiary.domain.userconstructor.UserConstructor;
-import com.lodong.spring.supermandiary.domain.userconstructor.UserConstructorTech;
 import com.lodong.spring.supermandiary.domain.working.NowWorkInfo;
 import com.lodong.spring.supermandiary.domain.working.WorkDetail;
-import com.lodong.spring.supermandiary.dto.main.AlarmDTO;
-import com.lodong.spring.supermandiary.dto.main.MyInfoDTO;
-import com.lodong.spring.supermandiary.dto.main.MyWorkDto;
-import com.lodong.spring.supermandiary.dto.main.ReadAllAlarmDTO;
+import com.lodong.spring.supermandiary.dto.main.*;
 import com.lodong.spring.supermandiary.repo.*;
 import com.lodong.spring.supermandiary.repo.file.FileRepository;
 import com.lodong.spring.supermandiary.util.DateUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,7 +33,8 @@ public class MainService {
     private final UserConstructorRepository userConstructorRepository;
     private final WorkingRepository workingRepository;
 
-    //private final String STORAGE_ROOT_PATH = "/home/lodong/TestStorage/";
+    private final ConstructorRepository constructorRepository;
+
     private final String STORAGE_ROOT_PATH = "/app/";
     private final String File_PATH = "work-file/";
 
@@ -51,9 +50,10 @@ public class MainService {
         List<WorkDetail> workDetailList = workDetailRepository
                 .findByUserConstructorNotNullAndWorkingConstructorId(constructorId)
                 .orElseThrow(() -> new NullPointerException("작업이 존재하지 않습니다."));
+
         List<MyWorkDto> workDtos = new ArrayList<>();
 
-        workDetailList.forEach(workDetail -> {
+        Optional.ofNullable(workDetailList).orElseGet(Collections::emptyList).forEach(workDetail -> {
             String workId = workDetail.getWorking().getId();
             String workDetailId = workDetail.getId();
             String workLevel = workDetail.getName();
@@ -78,18 +78,20 @@ public class MainService {
             String workerName = workDetail.getUserConstructor().getName();
             String workerId = workDetail.getUserConstructor().getId();
             boolean isIsMine = workerId.equals(userUuid);
-            MyWorkDto myWorkDto = new MyWorkDto(workId, workDetailId, workLevel, workLevelId, productName, homeName, homeDong, homeHosu, estimateWorkDate, estimateWorkTime, isInFileIn, isIsComplete, isIsMine,workerName, workerId);
+            MyWorkDto myWorkDto = new MyWorkDto(workId, workDetailId, workLevel, workLevelId, productName, homeName, homeDong, homeHosu, estimateWorkDate, estimateWorkTime, isInFileIn, isIsComplete, isIsMine, workerName, workerId, workDetail.getStatus());
             workDtos.add(myWorkDto);
         });
         return workDtos;
     }
 
     @Transactional
-    public void completeWorkNoFile(String workDetailId) {
+    public NextWorkDetailDTO completeWorkNoFile(String workDetailId) throws RuntimeException {
         //완료처리
         WorkDetail workDetail = workDetailRepository
                 .findById(workDetailId)
                 .orElseThrow(() -> new NullPointerException("존재하지 않는 작업입니다."));
+
+        if (workDetail.isComplete()) throw new RuntimeException("이미 완료된 작업입니다.");
 
         workDetail.setActualWorkDate(DateUtil.getNowDate());
         workDetail.setActualWorkTime(DateUtil.getNowTime());
@@ -109,14 +111,23 @@ public class MainService {
         if (nextWork != null) {
             nowWorkInfo.setWorkDetail(nextWork);
             nowWorkRepository.save(nowWorkInfo);
+            return new NextWorkDetailDTO(nextWork.getId(), Optional.ofNullable(nextWork.getUserConstructor().getName()).orElse(null), nextWork.getNote(), nextWork.getEstimateWorkDate(), nextWork.getEstimateWorkTime(), nextWork.getName(), nextWork.getSequence());
         } else {
             workingRepository.completeWorking(workId, DateUtil.getNowDateTime());
+            return null;
         }
     }
 
     @Transactional
-    public void completeWork(List<MultipartFile> images, String workDetailId) throws IOException {
+    public NextWorkDetailDTO completeWork(List<MultipartFile> images, String workDetailId) throws IOException, RuntimeException {
+        WorkDetail workDetail = workDetailRepository
+                .findById(workDetailId)
+                .orElseThrow(() -> new NullPointerException("존재하지 않는 작업입니다."));
+
+        if (workDetail.isComplete()) throw new RuntimeException("이미 완료된 작업입니다.");
+
         List<FileList> fileLists = new ArrayList<>();
+
         int count = 0;
         if (images != null) {
             for (MultipartFile image : images) {
@@ -131,10 +142,6 @@ public class MainService {
                 fileLists.add(fileList);
                 saveFile(image, storage);
 
-                WorkDetail workDetail = WorkDetail.builder()
-                        .id(workDetailId)
-                        .build();
-
                 WorkFile workFile = WorkFile.builder()
                         .id(UUID.randomUUID().toString())
                         .fileList(fileList)
@@ -146,7 +153,7 @@ public class MainService {
             }
             fileRepository.saveAll(fileLists);
         }
-        completeWorkNoFile(workDetailId);
+        return completeWorkNoFile(workDetailId);
     }
 
     @Transactional
@@ -184,21 +191,23 @@ public class MainService {
         AffiliatedInfo affiliatedInfo = affiliatedInfoRepository.findByUserConstructor(userConstructor).orElse(null);
         List<String> techList = Optional.ofNullable(userConstructor.getUserConstructorTeches()).orElseGet(Collections::emptyList).stream().map(userConstructorTech -> userConstructorTech.getProduct().getName()).toList();
         if (affiliatedInfo == null) {
-            return new MyInfoDTO(userConstructor.getName(), userConstructor.getPhoneNumber(), userConstructor.getEmail(), userConstructor.getCareer(), null, techList, userConstructor.isActive());
-        } else{
-            return new MyInfoDTO(userConstructor.getName(), userConstructor.getPhoneNumber(), userConstructor.getEmail(), userConstructor.getCareer(), affiliatedInfo.getConstructor().getName(), techList, userConstructor.isActive());
+            return new MyInfoDTO(userConstructor.getName(), userConstructor.getPhoneNumber(), userConstructor.getEmail(), userConstructor.getCareer(), null, techList, userConstructor.isActive(), userConstructor.isCeo());
+        } else {
+            return new MyInfoDTO(userConstructor.getName(), userConstructor.getPhoneNumber(), userConstructor.getEmail(), userConstructor.getCareer(), affiliatedInfo.getConstructor().getName(), techList, userConstructor.isActive(), userConstructor.isCeo());
         }
     }
-
     @Transactional
-    public void readAllAlarm(ReadAllAlarmDTO readAllAlarmDTOS){
-        for(String alarmId : readAllAlarmDTOS.getAlarmList()){
+    public void readAllAlarm(ReadAllAlarmDTO readAllAlarmDTOS) {
+        for (String alarmId : readAllAlarmDTOS.getAlarmList()) {
             constructorAlarmRepository.updateReadAlarm(true, alarmId);
         }
     }
-
-
-
+    @Transactional(readOnly = true)
+    public PayActivationDTO isPayActivation(String constructorUid) {
+        Constructor constructor = constructorRepository.findById(constructorUid)
+                .orElseThrow(() -> new NullPointerException("존재하지 않는 시공사입니다."));
+        return new PayActivationDTO(constructor.isPayActivation());
+    }
     private void saveFile(MultipartFile file, String storage) throws IOException {
         File saveFile = new File(storage);
         file.transferTo(saveFile);

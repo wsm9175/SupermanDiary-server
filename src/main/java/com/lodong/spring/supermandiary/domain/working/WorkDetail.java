@@ -68,6 +68,9 @@ public class WorkDetail {
     @Column(nullable = false)
     private boolean isFileIn;
 
+    @Column(nullable = true)
+    private String status;
+
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "workDetail")
     private List<WorkFile> workFileList = new ArrayList<>();
 

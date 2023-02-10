@@ -54,16 +54,16 @@ public class AdminController {
         String constructorId;
         try {
             constructorId = getConstructorId(token);
+            WorkManageDto workManageDto = adminService.getWorkList(constructorId);
+            StatusEnum statusEnum = StatusEnum.OK;
+            String message = "작업 목록";
+            return getResponseMessage(statusEnum, message, workManageDto);
         } catch (NullPointerException e) {
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = e.getMessage();
             return getResponseMessage(statusEnum, message);
         }
 
-        WorkManageDto workManageDto = adminService.getWorkList(constructorId);
-        StatusEnum statusEnum = StatusEnum.OK;
-        String message = "작업 목록";
-        return getResponseMessage(statusEnum, message, workManageDto);
     }
 
     @PostMapping("/add/work")
@@ -76,27 +76,31 @@ public class AdminController {
             String message = "작업 삽입 성공";
             return getResponseMessage(statusEnum, message, null);
         } catch (NullPointerException e) {
+            e.printStackTrace();
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = e.getMessage();
             return getResponseMessage(statusEnum, message);
         } catch (DataIntegrityViolationException e) {
+            e.printStackTrace();
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = "DB 삽입중 오류가 발생했습니다.";
             return getResponseMessage(statusEnum, message);
         }
     }
+
     @PatchMapping("/alter/product")
-    public ResponseEntity<?> getWorkArea(@RequestHeader(name = "Authorization") String token, @RequestBody ConstructorProductAlterDTO constructorProductAlterDTO){
-        try{
+    public ResponseEntity<?> getWorkArea(@RequestHeader(name = "Authorization") String token, @RequestBody ConstructorProductAlterDTO constructorProductAlterDTO) {
+        try {
             adminService.alterProduct(constructorProductAlterDTO);
             return getResponseMessage(StatusEnum.OK, "상품 프로세스가 수정되었습니다.", null);
-        }catch (NullPointerException nullPointerException){
+        } catch (NullPointerException nullPointerException) {
             nullPointerException.printStackTrace();
             return getResponseMessage(StatusEnum.BAD_REQUEST, nullPointerException.getMessage());
         }
     }
+
     @PutMapping("/pay/activate")
-    public ResponseEntity<?> activatePayManage(@RequestHeader(name = "Authorization") String token, boolean activate){
+    public ResponseEntity<?> activatePayManage(@RequestHeader(name = "Authorization") String token, boolean activate) {
         String constructorId;
         try {
             constructorId = getConstructorId(token);
@@ -112,7 +116,7 @@ public class AdminController {
     }
 
     @PutMapping("/pay/update")
-    public ResponseEntity<?> payInfoUpdate(@RequestHeader(name = "Authorization") String token, String bank, String bankAccount){
+    public ResponseEntity<?> payInfoUpdate(@RequestHeader(name = "Authorization") String token, String bank, String bankAccount) {
         String constructorId;
         try {
             constructorId = getConstructorId(token);
@@ -128,7 +132,7 @@ public class AdminController {
     }
 
     @PutMapping("/order/activate")
-    public ResponseEntity<?> activateOrderManage(@RequestHeader(name = "Authorization") String token, boolean activate){
+    public ResponseEntity<?> activateOrderManage(@RequestHeader(name = "Authorization") String token, boolean activate) {
         String constructorId;
         try {
             constructorId = getConstructorId(token);
@@ -144,7 +148,7 @@ public class AdminController {
     }
 
     @PutMapping("/calling-number/update")
-    public ResponseEntity<?> updateCallingNumber(@RequestHeader(name = "Authorization") String token, String phoneNumber){
+    public ResponseEntity<?> updateCallingNumber(@RequestHeader(name = "Authorization") String token, String phoneNumber) {
         String constructorId;
         try {
             constructorId = getConstructorId(token);
@@ -174,7 +178,7 @@ public class AdminController {
     }
 
     @PutMapping("/pay-template/update")
-    public ResponseEntity<?> updatePayTemplate(@RequestHeader(name = "Authorization") String token, @RequestBody PayTemplateDto payTemplate){
+    public ResponseEntity<?> updatePayTemplate(@RequestHeader(name = "Authorization") String token, @RequestBody PayTemplateDto payTemplate) {
         String constructorId;
         try {
             constructorId = getConstructorId(token);
@@ -291,7 +295,6 @@ public class AdminController {
             String message = e.getMessage();
             return getResponseMessage(statusEnum, message);
         }
-
         try {
             WorkerManageDto workerManageDto = adminService.getWorkerManage(constructorId);
             StatusEnum statusEnum = StatusEnum.OK;
@@ -324,7 +327,7 @@ public class AdminController {
         try {
             adminService.inviteMember(getConstructorId(token), invite);
             return getResponseMessage(StatusEnum.OK, "초대 성공", null);
-        }catch (NullPointerException n){
+        } catch (NullPointerException n) {
             n.printStackTrace();
             return getResponseMessage(StatusEnum.BAD_REQUEST, n.getMessage(), null);
         }
@@ -332,7 +335,7 @@ public class AdminController {
     }
 
     @GetMapping("/sales")
-    public ResponseEntity<?> getSales(@RequestHeader(name = "Authorization") String token){
+    public ResponseEntity<?> getSales(@RequestHeader(name = "Authorization") String token) {
         String constructorId;
         try {
             constructorId = getConstructorId(token);
@@ -341,19 +344,19 @@ public class AdminController {
             String message = e.getMessage();
             return getResponseMessage(statusEnum, message);
         }
-        
-        try{
+
+        try {
             SaleInfoDto saleInfoDto = adminService.getSales(constructorId);
             String message = "완료된 작업 목록(결제 안된 데이터 포함)";
             return getResponseMessage(StatusEnum.OK, message, saleInfoDto);
-        }catch (NullPointerException e){
+        } catch (NullPointerException e) {
             e.printStackTrace();
             return getResponseMessage(StatusEnum.BAD_REQUEST, e.getMessage());
         }
     }
 
     @GetMapping("/get/product-list")
-    public ResponseEntity<?> getProductList(){
+    public ResponseEntity<?> getProductList() {
         List<ProductInfoDTO> productInfoDTOS = adminService.getProductInfoDTOS();
         return getResponseMessage(StatusEnum.OK, "product list", productInfoDTOS);
     }

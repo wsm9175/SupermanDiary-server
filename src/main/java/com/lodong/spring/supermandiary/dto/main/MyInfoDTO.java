@@ -17,4 +17,6 @@ public class MyInfoDTO {
     private String constructorName;
     private List<String> techList;
     private boolean isIsActivate;
+
+    private boolean isIsAdmin;
 }
